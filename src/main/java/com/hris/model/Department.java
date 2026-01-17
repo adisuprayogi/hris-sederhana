@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.List;
 @Entity
 @Table(name = "departments")
 @Data
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = {"parent", "head", "children"})
 @NoArgsConstructor
 @AllArgsConstructor
 public class Department extends AuditableEntity {
@@ -55,6 +56,7 @@ public class Department extends AuditableEntity {
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
+    @ToString.Exclude
     private Department parent;
 
     /**
@@ -63,6 +65,7 @@ public class Department extends AuditableEntity {
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "head_id")
+    @ToString.Exclude
     private Employee head;
 
     /**
@@ -70,6 +73,7 @@ public class Department extends AuditableEntity {
      * Inverse side of parent relationship
      */
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<Department> children = new ArrayList<>();
 
     // =====================================================

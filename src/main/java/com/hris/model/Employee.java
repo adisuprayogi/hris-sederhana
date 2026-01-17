@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,7 +21,7 @@ import java.util.List;
 @Entity
 @Table(name = "employees")
 @Data
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = {"department", "position", "approver", "subordinates"})
 @NoArgsConstructor
 @AllArgsConstructor
 public class Employee extends AuditableEntity {
@@ -90,10 +91,12 @@ public class Employee extends AuditableEntity {
     // === DATA ORGANISASI ===
     @JoinColumn(name = "department_id")
     @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
     private Department department;
 
     @JoinColumn(name = "position_id")
     @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
     private Position position;
 
     // =====================================================
@@ -106,6 +109,7 @@ public class Employee extends AuditableEntity {
      */
     @JoinColumn(name = "approver_id")
     @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
     private Employee approver;
 
     /**
@@ -113,6 +117,7 @@ public class Employee extends AuditableEntity {
      * Employees who have this employee as their approver
      */
     @OneToMany(mappedBy = "approver", fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<Employee> subordinates = new ArrayList<>();
 
     // =====================================================

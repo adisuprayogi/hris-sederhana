@@ -9,7 +9,8 @@ import lombok.Getter;
 public enum EmployeeStatus {
     ACTIVE("Aktif"),
     INACTIVE("Tidak Aktif"),
-    RESIGNED("Mengundurkan Diri");
+    RESIGNED("Mengundurkan Diri"),
+    FIRED("Dipecat");
 
     private final String displayName;
 

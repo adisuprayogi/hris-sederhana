@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-6">
+            <div class="flex items-center gap-4">
+                <a th:href="@{/employees}" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                </a>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900" th:text="${isEdit ? 'Edit Karyawan' : 'Tambah Karyawan'}">Tambah Karyawan</h1>
+                    <p class="text-sm text-gray-500" th:text="${isEdit ? 'Update data karyawan' : 'Isi data karyawan baru'}">Isi data karyawan baru</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div th:if="${error}" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-red-600 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                <p class="text-sm text-red-700" th:text="${error}">Error message</p>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form th:action="${isEdit ? '/employees/' + employee.id + '/edit' : '/employees/create'}"
+              th:object="${employee}"
+              method="post"
+              class="space-y-6">
+
+            <!-- Section 1: Data Identitas -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Data Identitas</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Informasi identitas karyawan sesuai KTP</p>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- NIK -->
+                    <div>
+                        <label for="nik" class="block text-sm font-medium text-gray-700 mb-1">
+                            NIK <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text"
+                               id="nik"
+                               name="nik"
+                               th:field="*{nik}"
+                               required
+                               maxlength="20"
+                               th:classappend="${#fields.hasErrors('nik')} ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'"
+                               class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 outline-none transition-all"
+                               placeholder="16 digit NIK">
+                        <p th:if="${#fields.hasErrors('nik')}" th:errors="*{nik}" class="text-xs text-red-600 mt-1"></p>
+                    </div>
+
+                    <!-- Nama Lengkap -->
+                    <div>
+                        <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">
+                            Nama Lengkap <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text"
+                               id="fullName"
+                               name="fullName"
+                               th:field="*{fullName}"
+                               required
+                               maxlength="100"
+                               th:classappend="${#fields.hasErrors('fullName')} ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'"
+                               class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 outline-none transition-all"
+                               placeholder="Nama lengkap sesuai KTP">
+                        <p th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" class="text-xs text-red-600 mt-1"></p>
+                    </div>
+
+                    <!-- Tempat Lahir -->
+                    <div>
+                        <label for="placeOfBirth" class="block text-sm font-medium text-gray-700 mb-1">Tempat Lahir</label>
+                        <input type="text"
+                               id="placeOfBirth"
+                               name="placeOfBirth"
+                               th:field="*{placeOfBirth}"
+                               maxlength="50"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Kota kelahiran">
+                    </div>
+
+                    <!-- Tanggal Lahir -->
+                    <div>
+                        <label for="dateOfBirth" class="block text-sm font-medium text-gray-700 mb-1">
+                            Tanggal Lahir <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date"
+                               id="dateOfBirth"
+                               name="dateOfBirth"
+                               th:field="*{dateOfBirth}"
+                               required
+                               th:classappend="${#fields.hasErrors('dateOfBirth')} ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'"
+                               class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 outline-none transition-all">
+                        <p th:if="${#fields.hasErrors('dateOfBirth')}" th:errors="*{dateOfBirth}" class="text-xs text-red-600 mt-1"></p>
+                    </div>
+
+                    <!-- Gender -->
+                    <div>
+                        <label for="gender" class="block text-sm font-medium text-gray-700 mb-1">
+                            Jenis Kelamin <span class="text-red-500">*</span>
+                        </label>
+                        <select id="gender"
+                                name="gender"
+                                th:field="*{gender}"
+                                required
+                                th:classappend="${#fields.hasErrors('gender')} ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'"
+                                class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 outline-none transition-all">
+                            <option value="">Pilih Jenis Kelamin</option>
+                            <option value="MALE">Laki-laki</option>
+                            <option value="FEMALE">Perempuan</option>
+                        </select>
+                        <p th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}" class="text-xs text-red-600 mt-1"></p>
+                    </div>
+
+                    <!-- Nama Ibu Kandung -->
+                    <div>
+                        <label for="mothersName" class="block text-sm font-medium text-gray-700 mb-1">Nama Ibu Kandung</label>
+                        <input type="text"
+                               id="mothersName"
+                               name="mothersName"
+                               th:field="*{mothersName}"
+                               maxlength="100"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Nama ibu kandung">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Alamat & Kontak -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Alamat & Kontak</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Informasi alamat dan cara menghubungi</p>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Alamat -->
+                    <div class="md:col-span-2">
+                        <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap</label>
+                        <textarea id="address"
+                                  name="address"
+                                  th:field="*{address}"
+                                  rows="3"
+                                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
+                                  placeholder="Alamat lengkap sesuai KTP"></textarea>
+                    </div>
+
+                    <!-- No. Telepon -->
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">No. Telepon</label>
+                        <input type="text"
+                               id="phone"
+                               name="phone"
+                               th:field="*{phone}"
+                               maxlength="20"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="08xxxxxxxxxx">
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                            Email <span class="text-red-500">*</span>
+                        </label>
+                        <input type="email"
+                               id="email"
+                               name="email"
+                               th:field="*{email}"
+                               required
+                               maxlength="100"
+                               th:classappend="${#fields.hasErrors('email')} ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'"
+                               class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 outline-none transition-all"
+                               placeholder="email@contoh.com">
+                        <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="text-xs text-red-600 mt-1"></p>
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+                            Password <span class="text-red-500" th:classappend="${isEdit ? 'hidden' : ''}">*</span>
+                        </label>
+                        <input type="password"
+                               id="password"
+                               name="password"
+                               th:placeholder="${isEdit ? 'Kosongkan jika tidak ingin mengubah' : 'Password untuk login'}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        <p class="text-xs text-gray-500 mt-1" th:text="${isEdit ? 'Minimal 6 karakter. Kosongkan jika tidak ingin mengubah' : 'Minimal 6 karakter'}">Minimal 6 karakter</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Data Kepegawaian -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Data Kepegawaian</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Informasi pekerjaan dan organisasi</p>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Department -->
+                    <div>
+                        <label for="department" class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                        <select id="department"
+                                name="department"
+                                th:field="*{department}"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <option value="">Pilih Department</option>
+                            <option th:each="dept : ${departments}"
+                                    th:value="${dept.id}"
+                                    th:text="${dept.name}">Department Name</option>
+                        </select>
+                    </div>
+
+                    <!-- Position -->
+                    <div>
+                        <label for="position" class="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                        <select id="position"
+                                name="position"
+                                th:field="*{position}"
+                                onchange="updateBasicSalaryFromPosition()"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <option value="">Pilih Position</option>
+                            <option th:each="pos : ${positions}"
+                                    th:value="${pos.id}"
+                                    th:text="${pos.name}"
+                                    th:data-salary="${pos.baseSalary}">Position Name</option>
+                        </select>
+                    </div>
+
+                    <!-- Tanggal Bergabung -->
+                    <div>
+                        <label for="hireDate" class="block text-sm font-medium text-gray-700 mb-1">
+                            Tanggal Bergabung <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date"
+                               id="hireDate"
+                               name="hireDate"
+                               th:field="*{hireDate}"
+                               required
+                               th:classappend="${#fields.hasErrors('hireDate')} ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'"
+                               class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 outline-none transition-all">
+                        <p th:if="${#fields.hasErrors('hireDate')}" th:errors="*{hireDate}" class="text-xs text-red-600 mt-1"></p>
+                    </div>
+
+                    <!-- Lokasi Kerja -->
+                    <div>
+                        <label for="workLocation" class="block text-sm font-medium text-gray-700 mb-1">Lokasi Kerja</label>
+                        <input type="text"
+                               id="workLocation"
+                               name="workLocation"
+                               th:field="*{workLocation}"
+                               maxlength="100"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Kantor / Cabang">
+                    </div>
+
+                    <!-- Gaji Pokok -->
+                    <div>
+                        <label for="basicSalaryDisplay" class="block text-sm font-medium text-gray-700 mb-1">Gaji Pokok</label>
+                        <input type="text"
+                               id="basicSalaryDisplay"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Contoh: 5000000"
+                               onblur="formatSalaryOnBlur(this)"
+                               onfocus="clearSalaryFormat(this)">
+                        <input type="hidden"
+                               id="basicSalary"
+                               name="basicSalary"
+                               th:field="*{basicSalary}">
+                        <p class="text-xs text-gray-500 mt-1">Gaji pokok bulanan (tanpa titik, contoh: 5000000)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Data BPJS -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Data BPJS</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Nomor kepesertaan BPJS (opsional)</p>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <!-- BPJS Ketenagakerjaan -->
+                    <div>
+                        <label for="bpjsKetenagakerjaanNo" class="block text-sm font-medium text-gray-700 mb-1">BPJS Ketenagakerjaan</label>
+                        <input type="text"
+                               id="bpjsKetenagakerjaanNo"
+                               name="bpjsKetenagakerjaanNo"
+                               th:field="*{bpjsKetenagakerjaanNo}"
+                               maxlength="20"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Nomor JHT">
+                    </div>
+
+                    <!-- BPJS Kesehatan -->
+                    <div>
+                        <label for="bpjsKesehatanNo" class="block text-sm font-medium text-gray-700 mb-1">BPJS Kesehatan</label>
+                        <input type="text"
+                               id="bpjsKesehatanNo"
+                               name="bpjsKesehatanNo"
+                               th:field="*{bpjsKesehatanNo}"
+                               maxlength="20"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Nomor kartu">
+                    </div>
+
+                    <!-- NPWP -->
+                    <div>
+                        <label for="npwp" class="block text-sm font-medium text-gray-700 mb-1">NPWP</label>
+                        <input type="text"
+                               id="npwp"
+                               name="npwp"
+                               th:field="*{npwp}"
+                               maxlength="20"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="XX.XXX.XXX.X-XXX.XXX">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Data Keluarga & Status -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Data Keluarga & Status</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Informasi keluarga dan status karyawan</p>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- No. KK -->
+                    <div>
+                        <label for="kkNumber" class="block text-sm font-medium text-gray-700 mb-1">Nomor KK</label>
+                        <input type="text"
+                               id="kkNumber"
+                               name="kkNumber"
+                               th:field="*{kkNumber}"
+                               maxlength="20"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="16 digit nomor KK">
+                    </div>
+
+                    <!-- Status Perkawinan -->
+                    <div>
+                        <label for="maritalStatus" class="block text-sm font-medium text-gray-700 mb-1">Status Perkawinan</label>
+                        <select id="maritalStatus"
+                                name="maritalStatus"
+                                th:field="*{maritalStatus}"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <option value="">Pilih Status</option>
+                            <option value="SINGLE">Belum Menikah</option>
+                            <option value="MARRIED">Menikah</option>
+                            <option value="DIVORCED">Cerai Hidup</option>
+                            <option value="WIDOWED">Cerai Mati</option>
+                        </select>
+                    </div>
+
+                    <!-- Nama Pasangan -->
+                    <div>
+                        <label for="spouseName" class="block text-sm font-medium text-gray-700 mb-1">Nama Pasangan</label>
+                        <input type="text"
+                               id="spouseName"
+                               name="spouseName"
+                               th:field="*{spouseName}"
+                               maxlength="100"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Nama suami/istri">
+                    </div>
+
+                    <!-- Jumlah Tanggungan -->
+                    <div>
+                        <label for="numberOfDependents" class="block text-sm font-medium text-gray-700 mb-1">Jumlah Tanggungan</label>
+                        <input type="number"
+                               id="numberOfDependents"
+                               name="numberOfDependents"
+                               th:field="*{numberOfDependents}"
+                               min="0"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="0">
+                    </div>
+
+                    <!-- Status Karyawan -->
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status Karyawan</label>
+                        <select id="status"
+                                name="status"
+                                th:field="*{status}"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <option value="ACTIVE">Aktif</option>
+                            <option value="INACTIVE">Non-Aktif</option>
+                            <option value="RESIGNED">Resign</option>
+                            <option value="FIRED">Dipecat</option>
+                        </select>
+                    </div>
+
+                    <!-- Tanggal Keluar (untuk Resign/Dipecat) -->
+                    <div id="resignationDateSection" th:class="${employee.status != null and (employee.status.name() == 'RESIGNED' or employee.status.name() == 'FIRED')} ? '' : 'hidden'">
+                        <label for="resignationDate" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Keluar <span class="text-red-500">*</span></label>
+                        <input type="date"
+                               id="resignationDate"
+                               name="resignationDate"
+                               th:field="*{resignationDate}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        <p class="text-xs text-gray-500 mt-1">Tanggal efektif keluar (resign/dipecat)</p>
+                    </div>
+
+                    <!-- Alasan Keluar (untuk Resign/Dipecat) -->
+                    <div class="md:col-span-2" id="resignationReasonSection" th:class="${employee.status != null and (employee.status.name() == 'RESIGNED' or employee.status.name() == 'FIRED')} ? 'md:col-span-2' : 'md:col-span-2 hidden'">
+                        <label for="resignationReason" class="block text-sm font-medium text-gray-700 mb-1">Alasan Keluar <span class="text-red-500">*</span></label>
+                        <textarea id="resignationReason"
+                                  name="resignationReason"
+                                  th:field="*{resignationReason}"
+                                  rows="2"
+                                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
+                                  placeholder="Jelaskan alasan keluar"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 6: Approver (Optional) -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Approver</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Atasan yang akan menyetujui cuti dan dokumen lainnya</p>
+                </div>
+                <div class="p-6">
+                    <label for="approver" class="block text-sm font-medium text-gray-700 mb-1">Approver</label>
+                    <select id="approver"
+                            name="approver"
+                            th:field="*{approver}"
+                            class="w-full md:w-1/2 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        <option value="">Pilih Approver</option>
+                        <option th:each="emp : ${allEmployees}"
+                                th:value="${emp.id}"
+                                th:text="${emp.fullName + ' (' + emp.nik + ')'}">Employee Name</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                <a th:href="@{/employees}"
+                   class="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Batal
+                </a>
+                <button type="submit"
+                        class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                    <span th:text="${isEdit ? 'Simpan Perubahan' : 'Simpan Karyawan'}">Simpan Karyawan</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Update basic salary from selected position
+        function updateBasicSalaryFromPosition() {
+            const positionSelect = document.getElementById('position');
+            const selectedOption = positionSelect.options[positionSelect.selectedIndex];
+            const salary = selectedOption.getAttribute('data-salary');
+
+            if (salary && salary !== 'null') {
+                // Update hidden input and display
+                document.getElementById('basicSalary').value = salary;
+                const displayInput = document.getElementById('basicSalaryDisplay');
+                const numValue = parseFloat(salary);
+                displayInput.value = numValue.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+        }
+
+        // Clear format when user focuses on the input (for easier editing)
+        function clearSalaryFormat(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value) {
+                input.value = value;
+            } else {
+                input.value = '';
+            }
+        }
+
+        // Format salary when user leaves the input field
+        function formatSalaryOnBlur(input) {
+            let value = input.value.replace(/\D/g, '');
+
+            if (value) {
+                const numValue = parseInt(value);
+                document.getElementById('basicSalary').value = numValue;
+                // Format for display with Indonesian thousand separators
+                input.value = numValue.toLocaleString('id-ID', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                });
+            } else {
+                input.value = '';
+                document.getElementById('basicSalary').value = '';
+            }
+        }
+
+        // Format salary input with thousand separators (Indonesian format) - DEPRECATED
+        function formatSalary(input) {
+            formatSalaryOnBlur(input);
+        }
+
+        // Initialize the display field when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const hiddenInput = document.getElementById('basicSalary');
+            const displayInput = document.getElementById('basicSalaryDisplay');
+
+            if (hiddenInput.value) {
+                const value = parseInt(hiddenInput.value);
+                if (!isNaN(value)) {
+                    displayInput.value = value.toLocaleString('id-ID', {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                    });
+                }
+            }
+
+            // Show/hide resignation date and reason based on status
+            const statusSelect = document.getElementById('status');
+            const resignationDateSection = document.getElementById('resignationDateSection');
+            const resignationReasonSection = document.getElementById('resignationReasonSection');
+            const resignationDateInput = document.getElementById('resignationDate');
+            const resignationReasonInput = document.getElementById('resignationReason');
+
+            function updateResignationFields() {
+                if (statusSelect.value === 'RESIGNED' || statusSelect.value === 'FIRED') {
+                    resignationDateSection.classList.remove('hidden');
+                    resignationReasonSection.classList.remove('hidden');
+                    resignationReasonSection.classList.remove('md:col-span-2');
+                    resignationReasonSection.classList.add('md:col-span-2');
+                    resignationDateInput.required = true;
+                    resignationReasonInput.required = true;
+                } else {
+                    resignationDateSection.classList.add('hidden');
+                    resignationReasonSection.classList.add('hidden');
+                    resignationDateInput.required = false;
+                    resignationReasonInput.required = false;
+                }
+            }
+
+            statusSelect.addEventListener('change', updateResignationFields);
+
+            // Initialize on page load
+            updateResignationFields();
+
+            // Prevent non-numeric input for salary display
+            displayInput.addEventListener('keydown', function(e) {
+                if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
+                    (e.keyCode === 65 && e.ctrlKey) ||
+                    (e.keyCode === 67 && e.ctrlKey) ||
+                    (e.keyCode === 86 && e.ctrlKey) ||
+                    (e.keyCode === 88 && e.ctrlKey)) {
+                    return;
+                }
+                if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+</div>
+
+</html>

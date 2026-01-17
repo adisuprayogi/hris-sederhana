@@ -1,0 +1,27 @@
+-- Create contract_history table for tracking employment status changes and contract periods
+CREATE TABLE contract_history (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    employee_id BIGINT NOT NULL,
+    change_type VARCHAR(50) NOT NULL COMMENT 'Jenis perubahan status: INITIAL, PROBATION_TO_CONTRACT, PROBATION_TO_PERMANENT, CONTRACT_TO_PERMANENT, CONTRACT_RENEWAL, CONTRACT_EXPIRED, RESIGNATION, TERMINATION, RETIREMENT, STATUS_CHANGE',
+    old_status VARCHAR(20) COMMENT 'Status kerja sebelumnya: PERMANENT, CONTRACT, PROBATION, DAILY',
+    new_status VARCHAR(20) NOT NULL COMMENT 'Status kerja baru: PERMANENT, CONTRACT, PROBATION, DAILY',
+    start_date DATE NOT NULL COMMENT 'Tanggal mulai periode/status ini',
+    end_date DATE NULL COMMENT 'Tanggal selesai periode/status ini. NULL jika status masih berlaku',
+    permanent_appointment_date DATE NULL COMMENT 'Tanggal pengangkatan sebagai karyawan tetap. Diisi hanya jika new_status = PERMANENT',
+    contract_number VARCHAR(100) NULL COMMENT 'Nomor kontrak (opsional, untuk karyawan kontrak)',
+    reason TEXT NULL COMMENT 'Alasan perubahan status',
+    notes TEXT NULL COMMENT 'Catatan tambahan',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by BIGINT NULL,
+    updated_by BIGINT NULL,
+    deleted_at TIMESTAMP NULL,
+    deleted_by BIGINT NULL,
+    FOREIGN KEY (employee_id) REFERENCES employees(id),
+    INDEX idx_employee_id (employee_id),
+    INDEX idx_change_type (change_type),
+    INDEX idx_new_status (new_status),
+    INDEX idx_start_date (start_date),
+    INDEX idx_end_date (end_date),
+    INDEX idx_deleted_at (deleted_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Riwayat perubahan status kerja dan periode kontrak karyawan';

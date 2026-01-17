@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <div class="mb-6">
+            <div class="flex items-center gap-4">
+                <a th:href="@{/employees}" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                </a>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900">Detail Karyawan</h1>
+                    <p class="text-sm text-gray-500 mt-1">Informasi lengkap karyawan</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+            <div class="p-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                    <!-- Avatar -->
+                    <div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-3xl font-bold text-white" th:text="${employee.fullName != null ? #strings.substring(employee.fullName, 0, 1).toUpperCase() : '?'}">A</span>
+                    </div>
+
+                    <!-- Info -->
+                    <div class="flex-1">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900" th:text="${employee.fullName}">Nama Karyawan</h2>
+                                <p class="text-sm text-gray-500 mt-1" th:text="${employee.position != null ? employee.position.name : '-'}">Position</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span th:if="${employee.status == T(com.hris.model.enums.EmployeeStatus).ACTIVE}" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700" th:text="${employee.status.displayName}">Aktif</span>
+                                <span th:if="${employee.status == T(com.hris.model.enums.EmployeeStatus).INACTIVE}" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700" th:text="${employee.status.displayName}">Non-Aktif</span>
+                                <span th:if="${employee.status == T(com.hris.model.enums.EmployeeStatus).RESIGNED}" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700" th:text="${employee.status.displayName}">Resign</span>
+                                <span th:if="${employee.status == T(com.hris.model.enums.EmployeeStatus).FIRED}" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700" th:text="${employee.status.displayName}">Dipecat</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center gap-2">
+                        <a th:href="@{/employees/{id}/edit(id=${employee.id})}"
+                           class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                            </svg>
+                            Edit
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Sections Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- Data Identitas -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Data Identitas</h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">NIK</span>
+                        <span class="text-sm font-medium text-gray-900 font-mono" th:text="${employee.nik}">-</span>
+                    </div>
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">Tempat, Tanggal Lahir</span>
+                        <span class="text-sm font-medium text-gray-900 text-right">
+                            <span th:text="${employee.placeOfBirth}">-</span>
+                            <span th:if="${employee.dateOfBirth != null}" th:text="${', ' + #temporals.format(employee.dateOfBirth, 'dd MMM yyyy')}"></span>
+                        </span>
+                    </div>
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">Jenis Kelamin</span>
+                        <span class="text-sm font-medium text-gray-900" th:text="${employee.gender == T(com.hris.model.enums.Gender).MALE} ? 'Laki-laki' : 'Perempuan'">-</span>
+                    </div>
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">Nama Ibu Kandung</span>
+                        <span class="text-sm font-medium text-gray-900" th:text="${employee.mothersName ?: '-'}">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alamat & Kontak -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Alamat & Kontak</h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">Email</span>
+                        <span class="text-sm font-medium text-gray-900" th:text="${employee.email}">-</span>
+                    </div>
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">Telepon</span>
+                        <span class="text-sm font-medium text-gray-900" th:text="${employee.phone ?: '-'}">-</span>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="text-sm text-gray-500 flex-shrink-0">Alamat</span>
+                        <span class="text-sm font-medium text-gray-900 text-right ml-auto" th:text="${employee.address ?: '-'}">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Kepegawaian -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Data Kepegawaian</h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">Department</span>
+                        <span class="text-sm font-medium text-gray-900" th:text="${employee.department != null ? employee.department.name : '-'}">-</span>
+                    </div>
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">Position</span>
+                        <span class="text-sm font-medium text-gray-900" th:text="${employee.position != null ? employee.position.name : '-'}">-</span>
+                    </div>
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">Status Ketenagakerjaan</span>
+                        <span class="text-sm font-medium text-gray-900" th:text="${employee.employmentStatus}">-</span>
+                    </div>
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">Tanggal Bergabung</span>
+                        <span class="text-sm font-medium text-gray-900" th:text="${employee.hireDate != null ? #temporals.format(employee.hireDate, 'dd MMM yyyy') : '-'}">-</span>
+                    </div>
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">Lokasi Kerja</span>
+                        <span class="text-sm font-medium text-gray-900" th:text="${employee.workLocation ?: '-'}">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data BPJS & Gaji -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">BPJS & Gaji</h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">BPJS Ketenagakerjaan</span>
+                        <span class="text-sm font-medium text-gray-900 font-mono" th:text="${employee.bpjsKetenagakerjaanNo ?: '-'}">-</span>
+                    </div>
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">BPJS Kesehatan</span>
+                        <span class="text-sm font-medium text-gray-900 font-mono" th:text="${employee.bpjsKesehatanNo ?: '-'}">-</span>
+                    </div>
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">NPWP</span>
+                        <span class="text-sm font-medium text-gray-900 font-mono" th:text="${employee.npwp ?: '-'}">-</span>
+                    </div>
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">Gaji Pokok</span>
+                        <span class="text-sm font-medium text-gray-900" th:text="${employee.basicSalary != null ? #numbers.formatCurrency(employee.basicSalary).replace('Rp', 'Rp ').replace(',00', '') : '-'}">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Keluarga -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Data Keluarga</h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">Nomor KK</span>
+                        <span class="text-sm font-medium text-gray-900 font-mono" th:text="${employee.kkNumber ?: '-'}">-</span>
+                    </div>
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">Status Perkawinan</span>
+                        <span class="text-sm font-medium text-gray-900" th:text="${employee.maritalStatus}">-</span>
+                    </div>
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">Nama Pasangan</span>
+                        <span class="text-sm font-medium text-gray-900" th:text="${employee.spouseName ?: '-'}">-</span>
+                    </div>
+                    <div class="flex items-start justify-between">
+                        <span class="text-sm text-gray-500">Jumlah Tanggungan</span>
+                        <span class="text-sm font-medium text-gray-900" th:text="${employee.numberOfDependents != null ? employee.numberOfDependents : '0'}">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Approver -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Approver</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-sm font-semibold text-white" th:text="${employee.approver != null && employee.approver.fullName != null ? #strings.substring(employee.approver.fullName, 0, 1).toUpperCase() : '?'}">A</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900" th:text="${employee.approver != null ? employee.approver.fullName : 'Belum ditentukan'}">-</p>
+                                <p class="text-xs text-gray-500" th:text="${employee.approver != null ? employee.approver.nik : ''}">-</p>
+                            </div>
+                        </div>
+                        <a th:href="@{/employees/{id}/edit(id=${employee.id})}"
+                           th:if="${employee.approver == null}"
+                           class="text-sm text-blue-600 hover:text-blue-700">Set Approver</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- History Section -->
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Job History -->
+            <a th:href="@{/employees/{id}/job-history(id=${employee.id})}"
+               class="group bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-blue-300 transition-all cursor-pointer">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                        <svg class="w-6 h-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" />
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-sm font-semibold text-gray-900">Riwayat Pekerjaan</h3>
+                        <p class="text-xs text-gray-500 mt-1">Lihat perubahan departemen dan posisi</p>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                    </svg>
+                </div>
+            </a>
+
+            <!-- Salary History -->
+            <a th:href="@{/employees/{id}/salary-history(id=${employee.id})}"
+               class="group bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-green-300 transition-all cursor-pointer">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                        <svg class="w-6 h-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-sm font-semibold text-gray-900">Riwayat Gaji</h3>
+                        <p class="text-xs text-gray-500 mt-1">Lihat perubahan gaji dan kenaikan</p>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400 group-hover:text-green-600 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                    </svg>
+                </div>
+            </a>
+
+            <!-- Contract History -->
+            <a th:href="@{/employees/{id}/contract-history(id=${employee.id})}"
+               class="group bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-orange-300 transition-all cursor-pointer">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200 transition-colors">
+                        <svg class="w-6 h-6 text-orange-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-sm font-semibold text-gray-900">Riwayat Kontrak</h3>
+                        <p class="text-xs text-gray-500 mt-1">Lihat status kerja dan periode kontrak</p>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400 group-hover:text-orange-600 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                    </svg>
+                </div>
+            </a>
+        </div>
+
+        <!-- Audit Info -->
+        <div class="mt-6 bg-gray-50 rounded-xl border border-gray-200 p-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                <div>
+                    <span class="text-gray-500">Dibuat pada</span>
+                    <p class="font-medium text-gray-900 mt-0.5" th:text="${employee.createdAt != null ? #temporals.format(employee.createdAt, 'dd MMM yyyy, HH:mm') : '-'}">-</p>
+                </div>
+                <div>
+                    <span class="text-gray-500">Dibuat oleh</span>
+                    <p class="font-medium text-gray-900 mt-0.5" th:text="${employee.createdBy ?: '-'}">-</p>
+                </div>
+                <div>
+                    <span class="text-gray-500">Diperbarui pada</span>
+                    <p class="font-medium text-gray-900 mt-0.5" th:text="${employee.updatedAt != null ? #temporals.format(employee.updatedAt, 'dd MMM yyyy, HH:mm') : '-'}">-</p>
+                </div>
+                <div>
+                    <span class="text-gray-500">Diperbarui oleh</span>
+                    <p class="font-medium text-gray-900 mt-0.5" th:text="${employee.updatedBy ?: '-'}">-</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</html>

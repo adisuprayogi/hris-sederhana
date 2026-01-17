@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<head>
+    <style>
+        .status-badge {
+            transition: all 0.2s ease;
+        }
+    </style>
+</head>
+
+<div layout:fragment="content">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <div class="mb-6">
+            <div class="flex items-center gap-4">
+                <a th:href="@{/employees/{id}/contract-history(id=${employee.id})}"
+                   class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                </a>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900">Catat Perubahan Status Kerja</h1>
+                    <p class="text-sm text-gray-500 mt-1" th:text="${employee.fullName}">Nama Karyawan</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Status Info -->
+        <div th:if="${currentStatus != null}" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div class="flex items-start gap-3">
+                <svg class="w-5 h-5 text-blue-600 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12v-.008z" />
+                </svg>
+                <div class="flex-1">
+                    <p class="text-sm text-blue-800">
+                        <span class="font-medium">Status Saat Ini:</span>
+                        <span class="font-bold" th:text="${currentStatus.newStatus.displayName}">-</span>
+                        <span class="text-blue-600 mx-2">•</span>
+                        <span th:text="${#temporals.format(currentStatus.startDate, 'dd MMM yyyy')}">-</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${error}" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div class="flex items-start gap-3">
+                <svg class="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+                <p class="text-sm text-red-800" th:text="${error}">Error message</p>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <div class="flex items-start gap-3">
+                <svg class="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-sm text-green-800" th:text="${success}">Success message</p>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <form th:action="@{/employees/{employeeId}/contract-history/new(employeeId=${employee.id})}" method="post" enctype="multipart/form-data">
+                <div class="p-6 space-y-5">
+                    <!-- Jenis Perubahan -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Perubahan <span class="text-red-500">*</span></label>
+                        <select name="changeType" id="changeType"
+                                onchange="updateFormOptions()"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <option value="">Pilih Jenis Perubahan</option>
+                            <option value="CONTRACT_TO_PERMANENT">Pengangkatan Karyawan Tetap (Contract ke Permanent)</option>
+                            <option value="PROBATION_TO_PERMANENT">Pengangkatan Karyawan Tetap (Probation ke Permanent)</option>
+                            <option value="CONTRACT_RENEWAL">Perpanjangan Kontrak</option>
+                            <option value="PROBATION_TO_CONTRACT">Konversi Probation ke Contract</option>
+                            <option value="STATUS_CHANGE">Perubahan Status Lainnya</option>
+                        </select>
+                    </div>
+
+                    <!-- Status Baru (untuk perubahan status umum) -->
+                    <div id="newStatusSection" style="display: none;">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status Baru <span class="text-red-500">*</span></label>
+                        <select name="newStatus" id="newStatus"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <option value="">Pilih Status Baru</option>
+                            <option th:each="status : ${employmentStatuses}"
+                                    th:value="${status.name()}"
+                                    th:text="${status.displayName}">Status</option>
+                        </select>
+                    </div>
+
+                    <!-- Tanggal Efektif -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Mulai <span class="text-red-500">*</span></label>
+                        <input type="date"
+                               name="effectiveDate"
+                               id="effectiveDate"
+                               th:value="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy-MM-dd')}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               required>
+                        <p class="text-xs text-gray-500 mt-1">Tanggal mulai periode/status baru</p>
+                    </div>
+
+                    <!-- Tanggal Berakhir (untuk kontrak) -->
+                    <div id="contractEndDateSection" style="display: none;">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Berakhir <span class="text-red-500">*</span></label>
+                        <input type="date"
+                               name="endDate"
+                               id="endDate"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        <p class="text-xs text-gray-500 mt-1">Tanggal selesai periode kontrak</p>
+                    </div>
+
+                    <!-- Nomor Kontrak (untuk perpanjangan kontrak) -->
+                    <div id="contractNumberSection" style="display: none;">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Kontrak</label>
+                        <input type="text"
+                               name="contractNumber"
+                               id="contractNumber"
+                               placeholder="Contoh: KONTRAK-2024-001"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        <p class="text-xs text-gray-500 mt-1">Nomor kontrak yang baru (opsional)</p>
+                    </div>
+
+                    <!-- Alasan -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Alasan <span class="text-red-500">*</span></label>
+                        <textarea name="reason"
+                                  rows="3"
+                                  placeholder="Jelaskan alasan perubahan status..."
+                                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
+                                  required></textarea>
+                    </div>
+
+                    <!-- Catatan Tambahan -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Catatan Tambahan</label>
+                        <textarea name="notes"
+                                  rows="2"
+                                  placeholder="Catatan tambahan (opsional)..."
+                                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"></textarea>
+                    </div>
+
+                    <!-- Upload Dokumen (SK/PKWT) -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Upload Dokumen (SK/PKWT)</label>
+                        <input type="file"
+                               name="document"
+                               accept=".pdf,application/pdf"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <p class="text-xs text-gray-500 mt-1">Format PDF, maksimal 5MB</p>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl flex items-center justify-end gap-3">
+                    <a th:href="@{/employees/{id}/contract-history(id=${employee.id})}"
+                       class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        Batal
+                    </a>
+                    <button type="submit"
+                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Info Cards -->
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 class="text-sm font-semibold text-green-800 mb-2">Pengangkatan Karyawan Tetap</h4>
+                <p class="text-xs text-green-700">Gunakan opsi ini ketika karyawan selesai masa percobaan atau masa kontrak dan diangkat menjadi karyawan tetap.</p>
+            </div>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 class="text-sm font-semibold text-blue-800 mb-2">Perpanjangan Kontrak</h4>
+                <p class="text-xs text-blue-700">Gunakan opsi ini untuk memperpanjang masa kontrak karyawan kontrak. Sertakan nomor kontrak baru jika ada.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateFormOptions() {
+            const changeType = document.getElementById('changeType').value;
+            const newStatusSection = document.getElementById('newStatusSection');
+            const contractNumberSection = document.getElementById('contractNumberSection');
+            const contractEndDateSection = document.getElementById('contractEndDateSection');
+            const newStatusSelect = document.getElementById('newStatus');
+            const endDateInput = document.getElementById('endDate');
+
+            // Reset
+            newStatusSection.style.display = 'none';
+            contractNumberSection.style.display = 'none';
+            contractEndDateSection.style.display = 'none';
+            endDateInput.required = false;
+
+            if (changeType === 'CONTRACT_RENEWAL') {
+                // Show contract number and end date fields
+                contractNumberSection.style.display = 'block';
+                contractEndDateSection.style.display = 'block';
+                endDateInput.required = true;
+                newStatusSelect.value = 'CONTRACT';
+            } else if (changeType === 'CONTRACT_TO_PERMANENT' || changeType === 'PROBATION_TO_PERMANENT') {
+                // Both options lead to PERMANENT status (no end date)
+                newStatusSection.style.display = 'block';
+                newStatusSelect.value = 'PERMANENT';
+                newStatusSelect.disabled = true;
+            } else if (changeType === 'PROBATION_TO_CONTRACT') {
+                // Probation to Contract (requires end date)
+                newStatusSection.style.display = 'block';
+                contractEndDateSection.style.display = 'block';
+                endDateInput.required = true;
+                newStatusSelect.value = 'CONTRACT';
+                newStatusSelect.disabled = true;
+            } else if (changeType === 'STATUS_CHANGE') {
+                // General status change - user can select
+                newStatusSection.style.display = 'block';
+                newStatusSelect.disabled = false;
+                newStatusSelect.value = '';
+
+                // Add event listener to newStatus select to show/hide end date
+                newStatusSelect.onchange = function() {
+                    if (this.value === 'CONTRACT') {
+                        contractEndDateSection.style.display = 'block';
+                        endDateInput.required = true;
+                    } else {
+                        contractEndDateSection.style.display = 'none';
+                        endDateInput.required = false;
+                        endDateInput.value = '';
+                    }
+                };
+            }
+        }
+    </script>
+</div>
+
+</html>
