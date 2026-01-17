@@ -1,6 +1,7 @@
 package com.hris.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,12 +25,16 @@ public class Position extends AuditableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Nama position wajib diisi")
+    @Size(max = 100, message = "Nama position maksimal 100 karakter")
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
+    @Size(max = 500, message = "Deskripsi maksimal 500 karakter")
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @DecimalMin(value = "0.0", message = "Base salary tidak boleh negatif")
     @Column(name = "base_salary", precision = 15, scale = 2)
     private BigDecimal baseSalary;
 
@@ -46,6 +51,9 @@ public class Position extends AuditableEntity {
      * 5 = Wakil Rektor / Dekan / Director
      * 6 = Rektor / President
      */
+    @NotNull(message = "Level position wajib diisi")
+    @Min(value = 1, message = "Level position minimal 1")
+    @Max(value = 6, message = "Level position maksimal 6")
     @Column(name = "level", nullable = false)
     private Integer level = 1;
 

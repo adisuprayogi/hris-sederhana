@@ -31,7 +31,10 @@
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/security/CustomUserDetailsService.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/enums/PayrollStatus.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/config/GlobalModelAttributes.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/PositionRepository.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/Department.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/service/PositionService.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/PositionController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/HrisApplication.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/SoftDeleteEntity.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/enums/LecturerRank.java

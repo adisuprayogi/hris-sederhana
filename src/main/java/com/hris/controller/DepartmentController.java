@@ -60,6 +60,7 @@ public class DepartmentController {
         List<Department> allDepartments = departmentService.getAllDepartments();
         List<com.hris.model.Department> tree = departmentService.getDepartmentTree();
 
+        model.addAttribute("activePage", "departments");
         model.addAttribute("departmentPage", departmentPage);
         model.addAttribute("departments", departmentPage.getContent());
         model.addAttribute("allDepartments", allDepartments);
@@ -91,6 +92,7 @@ public class DepartmentController {
     public String createDepartmentForm(Model model) {
         log.info("Loading department create form");
 
+        model.addAttribute("activePage", "departments");
         model.addAttribute("department", new Department());
         model.addAttribute("parentOptions", departmentService.getAllDepartments());
         model.addAttribute("isEdit", false);
@@ -110,6 +112,7 @@ public class DepartmentController {
             return "redirect:/departments";
         }
 
+        model.addAttribute("activePage", "departments");
         model.addAttribute("department", department);
         model.addAttribute("parentOptions", getAvailableParentOptions(id));
         model.addAttribute("isEdit", true);
@@ -152,6 +155,7 @@ public class DepartmentController {
             dto.setHeadName(department.getHead().getFullName());
         }
 
+        model.addAttribute("activePage", "departments");
         model.addAttribute("department", dto);
         model.addAttribute("parentChain", parentChain);
         model.addAttribute("children", departmentService.getChildDepartments(id));
