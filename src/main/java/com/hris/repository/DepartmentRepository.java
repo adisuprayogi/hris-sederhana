@@ -62,6 +62,12 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
     boolean existsByNameIgnoreCaseAndDeletedAtIsNull(@Param("name") String name);
 
     /**
+     * Find all prodis (departments where is_prodi = true)
+     */
+    @Query("SELECT d FROM Department d WHERE d.isProdi = true AND d.deletedAt IS NULL ORDER BY d.name")
+    List<Department> findByIsProdiTrueAndDeletedAtIsNull();
+
+    /**
      * Find all departments in a parent chain (for hierarchy validation)
      */
     @Query("SELECT d FROM Department d WHERE d.id IN :departmentIds AND d.deletedAt IS NULL")

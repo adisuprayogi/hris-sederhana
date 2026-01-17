@@ -39,6 +39,13 @@ public class DepartmentService {
     }
 
     /**
+     * Get all prodis (departments where is_prodi = true)
+     */
+    public List<Department> getAllProdis() {
+        return departmentRepository.findByIsProdiTrueAndDeletedAtIsNull();
+    }
+
+    /**
      * Search departments with filters and pagination
      */
     public Page<Department> searchDepartments(String search, Long parentId, Boolean isProdi, Pageable pageable) {

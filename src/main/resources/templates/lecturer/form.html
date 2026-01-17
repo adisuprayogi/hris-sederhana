@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="space-y-6">
+        <!-- Page Header -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="flex-1">
+                    <h1 class="text-2xl font-bold text-gray-900" th:text="${isEdit ? 'Edit Profil Dosen' : 'Tambah Profil Dosen'}">Tambah Profil Dosen</h1>
+                    <p class="text-sm text-gray-500 mt-1" th:text="${isEdit ? 'Perbarui data profil dosen' : 'Buat profil dosen baru'}">Buat profil dosen baru</p>
+                </div>
+                <a th:href="@{/lecturers}"
+                   class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all">
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    Kembali
+                </a>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div th:if="${error}" class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            <p class="text-sm text-red-800" th:text="${error}">Error message here</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <form th:action="@{${isEdit ? '/lecturers/' + lecturerProfile.id + '/edit' : '/lecturers/create'}}"
+                  th:object="${lecturerProfile}"
+                  method="post"
+                  class="p-6">
+                <input type="hidden" th:field="*{id}" th:if="${isEdit}">
+
+                <!-- Employee Information -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Informasi Pegawai</h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Employee Selection (Required) -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Pegawai <span class="text-red-500">*</span>
+                            </label>
+                            <select th:field="*{employee}"
+                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                    th:disabled="${isEdit}"
+                                    th:classappend="${isEdit ? 'bg-gray-50 cursor-not-allowed' : ''}">
+                                <option value="">-- Pilih Pegawai --</option>
+                                <option th:each="emp : ${allEmployees}"
+                                        th:value="${emp.id}"
+                                        th:text="${emp.fullName + ' (' + emp.nik + ')'}">Employee</option>
+                            </select>
+                            <p th:if="${#fields.hasErrors('employee')}" class="mt-1 text-xs text-red-600" th:errors="*{employee}">Error</p>
+                            <p th:if="${isEdit}" class="mt-1 text-xs text-gray-500">Pegawai tidak dapat diubah setelah profil dibuat</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lecturer Identification -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Identifikasi Dosen</h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- NIDN -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                NIDN <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text"
+                                   th:field="*{nidn}"
+                                   maxlength="20"
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                   placeholder="Contoh: 0412098801">
+                            <p th:if="${#fields.hasErrors('nidn')}" class="mt-1 text-xs text-red-600" th:errors="*{nidn}">Error</p>
+                        </div>
+
+                        <!-- Last Education -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Pendidikan Terakhir
+                            </label>
+                            <input type="text"
+                                   th:field="*{lastEducation}"
+                                   maxlength="100"
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                   placeholder="Contoh: S3 Teknik Informatika">
+                            <p th:if="${#fields.hasErrors('lastEducation')}" class="mt-1 text-xs text-red-600" th:errors="*{lastEducation}">Error</p>
+                        </div>
+
+                        <!-- Expertise -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Bidang Keahlian
+                            </label>
+                            <input type="text"
+                                   th:field="*{expertise}"
+                                   maxlength="255"
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                   placeholder="Contoh: Artificial Intelligence, Data Mining">
+                            <p th:if="${#fields.hasErrors('expertise')}" class="mt-1 text-xs text-red-600" th:errors="*{expertise}">Error</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lecturer Status -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Status Dosen</h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Lecturer Rank -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Jenjang <span class="text-red-500">*</span>
+                            </label>
+                            <select th:field="*{lecturerRank}"
+                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                <option value="">-- Pilih Jenjang --</option>
+                                <option th:each="rank : ${rankOptions}"
+                                        th:value="${rank}"
+                                        th:text="${rank.displayName}">Rank</option>
+                            </select>
+                            <p th:if="${#fields.hasErrors('lecturerRank')}" class="mt-1 text-xs text-red-600" th:errors="*{lecturerRank}">Error</p>
+                        </div>
+
+                        <!-- Employment Status -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Status Kepegawaian <span class="text-red-500">*</span>
+                            </label>
+                            <select th:field="*{employmentStatus}"
+                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                <option value="">-- Pilih Status --</option>
+                                <option th:each="status : ${empStatusOptions}"
+                                        th:value="${status}"
+                                        th:text="${status.displayName}">Status</option>
+                            </select>
+                            <p th:if="${#fields.hasErrors('employmentStatus')}" class="mt-1 text-xs text-red-600" th:errors="*{employmentStatus}">Error</p>
+                        </div>
+
+                        <!-- Work Status -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Status Kerja <span class="text-red-500">*</span>
+                            </label>
+                            <select th:field="*{workStatus}"
+                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                <option value="">-- Pilih Status --</option>
+                                <option th:each="status : ${workStatusOptions}"
+                                        th:value="${status}"
+                                        th:text="${status.displayName}">Status</option>
+                            </select>
+                            <p th:if="${#fields.hasErrors('workStatus')}" class="mt-1 text-xs text-red-600" th:errors="*{workStatus}">Error</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Homebase -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Homebase Prodi</h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Homebase Prodi -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Program Studi
+                            </label>
+                            <select th:field="*{homebaseProdi}"
+                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                <option value="">-- Pilih Prodi --</option>
+                                <option th:each="prodi : ${prodis}"
+                                        th:value="${prodi.id}"
+                                        th:text="${prodi.name}">Prodi</option>
+                            </select>
+                            <p th:if="${#fields.hasErrors('homebaseProdi')}" class="mt-1 text-xs text-red-600" th:errors="*{homebaseProdi}">Error</p>
+                            <p class="mt-1 text-xs text-gray-500">Pilih program studi sebagai homebase dosen (opsional)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Validation Errors Summary -->
+                <div th:if="${#fields.hasErrors('*')}" class="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                        </svg>
+                        <div>
+                            <p class="text-sm font-medium text-yellow-800">Mohon perbaiki kesalahan berikut:</p>
+                            <ul class="mt-2 text-sm text-yellow-700 list-disc list-inside">
+                                <li th:each="err : ${#fields.detailedErrors()}" th:text="${err.message}">Error</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
+                    <a th:href="@{/lecturers}"
+                       class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        Batal
+                    </a>
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487 1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 15.734a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                        </svg>
+                        <span th:text="${isEdit ? 'Simpan Perubahan' : 'Simpan Profil'}">Simpan Profil</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+</html>

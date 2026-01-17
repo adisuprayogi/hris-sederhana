@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-6">
+            <div class="flex items-center gap-4">
+                <a th:href="@{/company}" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                </a>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900" th:text="${isEdit ? 'Edit Profil Perusahaan' : 'Buat Profil Perusahaan'}">Buat Profil Perusahaan</h1>
+                    <p class="text-sm text-gray-500" th:text="${isEdit ? 'Update data perusahaan' : 'Isi data perusahaan'}">Isi data perusahaan</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div th:if="${error}" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-red-600 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                <p class="text-sm text-red-700" th:text="${error}">Error message</p>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form th:action="${isEdit ? '/company/edit' : '/company/create'}"
+              th:object="${company}"
+              method="post"
+              class="space-y-6"
+              enctype="multipart/form-data">
+
+            <!-- Section 1: Data Perusahaan -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Data Perusahaan</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Informasi dasar tentang perusahaan/institusi</p>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Nama Perusahaan -->
+                    <div class="md:col-span-2">
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+                            Nama Perusahaan <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text"
+                               id="name"
+                               name="name"
+                               th:field="*{name}"
+                               required
+                               maxlength="200"
+                               th:classappend="${#fields.hasErrors('name')} ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'"
+                               class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 outline-none transition-all"
+                               placeholder="Nama lengkap perusahaan/institusi">
+                        <p th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="text-xs text-red-600 mt-1"></p>
+                    </div>
+
+                    <!-- Kode -->
+                    <div>
+                        <label for="code" class="block text-sm font-medium text-gray-700 mb-1">Kode</label>
+                        <input type="text"
+                               id="code"
+                               name="code"
+                               th:field="*{code}"
+                               maxlength="50"
+                               th:classappend="${#fields.hasErrors('code')} ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'"
+                               class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 outline-none transition-all"
+                               placeholder="Kode singkat (untuk reports)">
+                        <p th:if="${#fields.hasErrors('code')}" th:errors="*{code}" class="text-xs text-red-600 mt-1"></p>
+                    </div>
+
+                    <!-- Tipe -->
+                    <div>
+                        <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Tipe</label>
+                        <select id="type"
+                                name="type"
+                                th:field="*{type}"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <option th:each="t : ${companyTypes}"
+                                    th:value="${t}"
+                                    th:text="${t.displayName}">Type</option>
+                        </select>
+                    </div>
+
+                    <!-- Tanggal Pendirian -->
+                    <div>
+                        <label for="establishmentDate" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Pendirian</label>
+                        <input type="date"
+                               id="establishmentDate"
+                               name="establishmentDate"
+                               th:field="*{establishmentDate}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Alamat & Kontak -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Alamat &amp; Kontak</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Informasi alamat dan cara menghubungi</p>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Alamat -->
+                    <div class="md:col-span-2">
+                        <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap</label>
+                        <textarea id="address"
+                                  name="address"
+                                  th:field="*{address}"
+                                  rows="3"
+                                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
+                                  placeholder="Alamat lengkap perusahaan"></textarea>
+                    </div>
+
+                    <!-- Kota -->
+                    <div>
+                        <label for="city" class="block text-sm font-medium text-gray-700 mb-1">Kota</label>
+                        <input type="text"
+                               id="city"
+                               name="city"
+                               th:field="*{city}"
+                               maxlength="100"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Nama kota">
+                    </div>
+
+                    <!-- Provinsi -->
+                    <div>
+                        <label for="province" class="block text-sm font-medium text-gray-700 mb-1">Provinsi</label>
+                        <input type="text"
+                               id="province"
+                               name="province"
+                               th:field="*{province}"
+                               maxlength="100"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Nama provinsi">
+                    </div>
+
+                    <!-- Kode Pos -->
+                    <div>
+                        <label for="postalCode" class="block text-sm font-medium text-gray-700 mb-1">Kode Pos</label>
+                        <input type="text"
+                               id="postalCode"
+                               name="postalCode"
+                               th:field="*{postalCode}"
+                               maxlength="10"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="XXXXX">
+                    </div>
+
+                    <!-- Telepon -->
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">No. Telepon</label>
+                        <input type="text"
+                               id="phone"
+                               name="phone"
+                               th:field="*{phone}"
+                               maxlength="20"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="(021) 1234567">
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email"
+                               id="email"
+                               name="email"
+                               th:field="*{email}"
+                               maxlength="100"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="info@perusahaan.com">
+                    </div>
+
+                    <!-- Website -->
+                    <div>
+                        <label for="website" class="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                        <input type="url"
+                               id="website"
+                               name="website"
+                               th:field="*{website}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="https://www.perusahaan.com">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Informasi Legal -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Informasi Legal</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">NPWP, SIUP, dan data legal lainnya</p>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- NPWP -->
+                    <div>
+                        <label for="npwpCompany" class="block text-sm font-medium text-gray-700 mb-1">NPWP Perusahaan</label>
+                        <input type="text"
+                               id="npwpCompany"
+                               name="npwpCompany"
+                               th:field="*{npwpCompany}"
+                               maxlength="25"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="XX.XXX.XXX.X-XXX.XXX">
+                    </div>
+
+                    <!-- Nomor SIUP -->
+                    <div>
+                        <label for="siupNumber" class="block text-sm font-medium text-gray-700 mb-1">Nomor SIUP</label>
+                        <input type="text"
+                               id="siupNumber"
+                               name="siupNumber"
+                               th:field="*{siupNumber}"
+                               maxlength="50"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Nomor SIUP">
+                    </div>
+
+                    <!-- Tanggal Berlaku SIUP -->
+                    <div>
+                        <label for="siupExpiredDate" class="block text-sm font-medium text-gray-700 mb-1">Masa Berlaku SIUP</label>
+                        <input type="date"
+                               id="siupExpiredDate"
+                               name="siupExpiredDate"
+                               th:field="*{siupExpiredDate}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Data BPJS -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Data BPJS Perusahaan</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Nomor kepesertaan BPJS perusahaan</p>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- BPJS Ketenagakerjaan -->
+                    <div>
+                        <label for="bpjsKetenagakerjaanNo" class="block text-sm font-medium text-gray-700 mb-1">BPJS Ketenagakerjaan</label>
+                        <input type="text"
+                               id="bpjsKetenagakerjaanNo"
+                               name="bpjsKetenagakerjaanNo"
+                               th:field="*{bpjsKetenagakerjaanNo}"
+                               maxlength="30"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Nomor BPJS Ketenagakerjaan">
+                    </div>
+
+                    <!-- BPJS Kesehatan -->
+                    <div>
+                        <label for="bpjsKesehatanNo" class="block text-sm font-medium text-gray-700 mb-1">BPJS Kesehatan</label>
+                        <input type="text"
+                               id="bpjsKesehatanNo"
+                               name="bpjsKesehatanNo"
+                               th:field="*{bpjsKesehatanNo}"
+                               maxlength="30"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Nomor BPJS Kesehatan">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Informasi Bank -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Informasi Bank (Payroll)</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Bank untuk pembayaran gaji</p>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <!-- Nama Bank -->
+                    <div>
+                        <label for="bankName" class="block text-sm font-medium text-gray-700 mb-1">Nama Bank</label>
+                        <input type="text"
+                               id="bankName"
+                               name="bankName"
+                               th:field="*{bankName}"
+                               maxlength="100"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Contoh: BCA, Mandiri">
+                    </div>
+
+                    <!-- Nomor Rekening -->
+                    <div>
+                        <label for="bankAccountNumber" class="block text-sm font-medium text-gray-700 mb-1">Nomor Rekening</label>
+                        <input type="text"
+                               id="bankAccountNumber"
+                               name="bankAccountNumber"
+                               th:field="*{bankAccountNumber}"
+                               maxlength="50"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Nomor rekening perusahaan">
+                    </div>
+
+                    <!-- Atas Nama -->
+                    <div>
+                        <label for="bankAccountName" class="block text-sm font-medium text-gray-700 mb-1">Atas Nama</label>
+                        <input type="text"
+                               id="bankAccountName"
+                               name="bankAccountName"
+                               th:field="*{bankAccountName}"
+                               maxlength="100"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Nama pemilik rekening">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 6: Konfigurasi Jam Kerja -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Konfigurasi Jam Kerja</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Default jam kerja untuk perhitungan absensi</p>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Jam Masuk (Mulai) -->
+                    <div>
+                        <label for="clockInStart" class="block text-sm font-medium text-gray-700 mb-1">Jam Masuk (Mulai)</label>
+                        <input type="time"
+                               id="clockInStart"
+                               name="clockInStart"
+                               th:field="*{clockInStart}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                    </div>
+
+                    <!-- Jam Masuk (Akhir - Batas Terlambat) -->
+                    <div>
+                        <label for="clockInEnd" class="block text-sm font-medium text-gray-700 mb-1">Batas Terlambat</label>
+                        <input type="time"
+                               id="clockInEnd"
+                               name="clockInEnd"
+                               th:field="*{clockInEnd}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                    </div>
+
+                    <!-- Jam Pulang (Mulai) -->
+                    <div>
+                        <label for="clockOutStart" class="block text-sm font-medium text-gray-700 mb-1">Jam Pulang (Mulai)</label>
+                        <input type="time"
+                               id="clockOutStart"
+                               name="clockOutStart"
+                               th:field="*{clockOutStart}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                    </div>
+
+                    <!-- Jam Pulang (Akhir) -->
+                    <div>
+                        <label for="clockOutEnd" class="block text-sm font-medium text-gray-700 mb-1">Jam Pulang (Akhir)</label>
+                        <input type="time"
+                               id="clockOutEnd"
+                               name="clockOutEnd"
+                               th:field="*{clockOutEnd}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 7: Konfigurasi Payroll Period -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Konfigurasi Payroll Period</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Periode penggajian untuk Employee dan Dosen</p>
+                </div>
+                <div class="p-6 space-y-8">
+
+                    <!-- Employee Payroll Configuration -->
+                    <div class="bg-blue-50 rounded-lg p-5 border border-blue-200">
+                        <div class="flex items-center gap-3 mb-4">
+                            <svg class="w-6 h-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                            </svg>
+                            <h3 class="text-base font-semibold text-gray-900">Employee</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="employeePayrollPeriod" class="block text-sm font-medium text-gray-700 mb-1">Periode</label>
+                                <select id="employeePayrollPeriod"
+                                        name="employeePayrollPeriod"
+                                        th:field="*{employeePayrollPeriod}"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm">
+                                    <option th:each="period : ${payrollPeriodTypes}"
+                                            th:value="${period}"
+                                            th:text="${period.displayName}">Period</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="employeePayrollCutoffDate" class="block text-sm font-medium text-gray-700 mb-1">Cut-off</label>
+                                <input type="number"
+                                       id="employeePayrollCutoffDate"
+                                       name="employeePayrollCutoffDate"
+                                       th:field="*{employeePayrollCutoffDate}"
+                                       min="1"
+                                       max="31"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm"
+                                       placeholder="25">
+                            </div>
+                            <div>
+                                <label for="employeePayrollPaymentDate" class="block text-sm font-medium text-gray-700 mb-1">Bayar</label>
+                                <input type="number"
+                                       id="employeePayrollPaymentDate"
+                                       name="employeePayrollPaymentDate"
+                                       th:field="*{employeePayrollPaymentDate}"
+                                       min="1"
+                                       max="31"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm"
+                                       placeholder="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Permanent Lecturer Payroll Configuration -->
+                    <div class="bg-green-50 rounded-lg p-5 border border-green-200">
+                        <div class="flex items-center gap-3 mb-4">
+                            <svg class="w-6 h-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                            </svg>
+                            <h3 class="text-base font-semibold text-gray-900">Dosen Tetap</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="permanentLecturerPayrollPeriod" class="block text-sm font-medium text-gray-700 mb-1">Periode</label>
+                                <select id="permanentLecturerPayrollPeriod"
+                                        name="permanentLecturerPayrollPeriod"
+                                        th:field="*{permanentLecturerPayrollPeriod}"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all text-sm">
+                                    <option th:each="period : ${payrollPeriodTypes}"
+                                            th:value="${period}"
+                                            th:text="${period.displayName}">Period</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="permanentLecturerPayrollCutoffDate" class="block text-sm font-medium text-gray-700 mb-1">Cut-off</label>
+                                <input type="number"
+                                       id="permanentLecturerPayrollCutoffDate"
+                                       name="permanentLecturerPayrollCutoffDate"
+                                       th:field="*{permanentLecturerPayrollCutoffDate}"
+                                       min="1"
+                                       max="31"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all text-sm"
+                                       placeholder="25">
+                            </div>
+                            <div>
+                                <label for="permanentLecturerPayrollPaymentDate" class="block text-sm font-medium text-gray-700 mb-1">Bayar</label>
+                                <input type="number"
+                                       id="permanentLecturerPayrollPaymentDate"
+                                       name="permanentLecturerPayrollPaymentDate"
+                                       th:field="*{permanentLecturerPayrollPaymentDate}"
+                                       min="1"
+                                       max="31"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all text-sm"
+                                       placeholder="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contract Lecturer Payroll Configuration -->
+                    <div class="bg-orange-50 rounded-lg p-5 border border-orange-200">
+                        <div class="flex items-center gap-3 mb-4">
+                            <svg class="w-6 h-6 text-orange-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                            </svg>
+                            <h3 class="text-base font-semibold text-gray-900">Dosen Tidak Tetap</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="contractLecturerPayrollPeriod" class="block text-sm font-medium text-gray-700 mb-1">Periode</label>
+                                <select id="contractLecturerPayrollPeriod"
+                                        name="contractLecturerPayrollPeriod"
+                                        th:field="*{contractLecturerPayrollPeriod}"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-sm">
+                                    <option th:each="period : ${payrollPeriodTypes}"
+                                            th:value="${period}"
+                                            th:text="${period.displayName}">Period</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="contractLecturerPayrollCutoffDate" class="block text-sm font-medium text-gray-700 mb-1">Cut-off</label>
+                                <input type="number"
+                                       id="contractLecturerPayrollCutoffDate"
+                                       name="contractLecturerPayrollCutoffDate"
+                                       th:field="*{contractLecturerPayrollCutoffDate}"
+                                       min="1"
+                                       max="31"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-sm"
+                                       placeholder="25">
+                            </div>
+                            <div>
+                                <label for="contractLecturerPayrollPaymentDate" class="block text-sm font-medium text-gray-700 mb-1">Bayar</label>
+                                <input type="number"
+                                       id="contractLecturerPayrollPaymentDate"
+                                       name="contractLecturerPayrollPaymentDate"
+                                       th:field="*{contractLecturerPayrollPaymentDate}"
+                                       min="1"
+                                       max="31"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-sm"
+                                       placeholder="1">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Section 8: Logo & Stamp (Edit Only) -->
+            <div th:if="${isEdit}" class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Logo &amp; Stempel</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Branding untuk slip gaji dan dokumen lainnya</p>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Logo Upload -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Logo Perusahaan</label>
+                        <div class="flex items-start gap-4">
+                            <div class="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300">
+                                <img th:if="${company.logoPath != null}"
+                                     th:src="@{/files/{path}(path=${company.logoPath})}"
+                                     alt="Logo"
+                                     class="w-full h-full object-cover">
+                                <svg th:unless="${company.logoPath != null}"
+                                     class="w-10 h-10 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                                </svg>
+                            </div>
+                            <div class="flex-1 space-y-2">
+                                <input type="file"
+                                       id="logo"
+                                       name="logo"
+                                       accept="image/*"
+                                       class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                <p class="text-xs text-gray-500">Maksimal 2MB. Format: PNG, JPG, SVG.</p>
+                                <button type="submit"
+                                        formaction="/company/logo"
+                                        class="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                                    Upload Logo
+                                </button>
+                                <a th:if="${company.logoPath != null}"
+                                   th:href="@{/company/logo/delete}"
+                                   class="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors inline-block"
+                                   onclick="return confirm('Hapus logo perusahaan?')">
+                                    Hapus Logo
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stamp Upload -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Stempel/Tanda Tangan</label>
+                        <div class="flex items-start gap-4">
+                            <div class="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300">
+                                <img th:if="${company.stampPath != null}"
+                                     th:src="@{/files/{path}(path=${company.stampPath})}"
+                                     alt="Stamp"
+                                     class="w-full h-full object-cover">
+                                <svg th:unless="${company.stampPath != null}"
+                                     class="w-10 h-10 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                                </svg>
+                            </div>
+                            <div class="flex-1 space-y-2">
+                                <input type="file"
+                                       id="stamp"
+                                       name="stamp"
+                                       accept="image/*"
+                                       class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                <p class="text-xs text-gray-500">Maksimal 2MB. Format: PNG, JPG, SVG.</p>
+                                <button type="submit"
+                                        formaction="/company/stamp"
+                                        class="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                                    Upload Stempel
+                                </button>
+                                <a th:if="${company.stampPath != null}"
+                                   th:href="@{/company/stamp/delete}"
+                                   class="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors inline-block"
+                                   onclick="return confirm('Hapus stempel perusahaan?')">
+                                    Hapus Stempel
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                <a th:href="@{/company}"
+                   class="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Batal
+                </a>
+                <button type="submit"
+                        class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                    <span th:text="${isEdit ? 'Simpan Perubahan' : 'Simpan Perusahaan'}">Simpan Perusahaan</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+</html>

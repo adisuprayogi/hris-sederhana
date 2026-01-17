@@ -11,7 +11,7 @@
 |-------|--------|--------|----------|
 | Phase 1: Foundation | Sprint 1-2 | ✅ Completed | 100% |
 | Phase 2: Master Data | Sprint 3-4 | ✅ Completed | 100% |
-| Phase 3: Lecturer Data | Sprint 5-6 | ⏸️ Not Started | 0% |
+| Phase 3: Lecturer Data | Sprint 5-6 | 🔄 In Progress | 50% |
 | Phase 4: Attendance | Sprint 7 | ⏸️ Not Started | 0% |
 | Phase 5: Leave Management | Sprint 8 | ⏸️ Not Started | 0% |
 | Phase 6: Payroll Karyawan | Sprint 9 | ⏸️ Not Started | 0% |
@@ -94,7 +94,7 @@
 - [x] **S2-02**: Create Enums ✅
   - [x] RoleType.java (ADMIN, HR, EMPLOYEE, DOSEN) ✅
   - [x] Gender.java (MALE, FEMALE) ✅
-  - [x] EmployeeStatus.java (ACTIVE, INACTIVE, RESIGNED) ✅
+  - [x] EmployeeStatus.java (ACTIVE, INACTIVE, RESIGNED, FIRED) ✅
   - [x] EmploymentStatus.java (PERMANENT, CONTRACT, PROBATION, DAILY) ✅
   - [x] MaritalStatus.java (SINGLE, MARRIED, DIVORCED, WIDOWED) ✅
   - [x] CompanyType.java (COMPANY, UNIVERSITY, SCHOOL, OTHER) ✅
@@ -153,27 +153,29 @@
 
 ### Sprint 3: Company & Department Management ✅ COMPLETED
 
-#### Company Management
-- [ ] **S3-01**: Create Company model (TODO)
-  - [ ] Create Company.java (singleton, all fields from RANCANGAN.md)
-  - [ ] Create CompanyRepository
-  - [ ] Create CompanyService
-  - [ ] Create CompanyController
+#### Company Management ✅ COMPLETED
+- [x] **S3-01**: Create Company model ✅
+  - [x] Create Company.java (singleton, all fields from RANCANGAN.md) ✅
+  - [x] Create CompanyRepository ✅
+  - [x] Create CompanyService ✅
+  - [x] Create CompanyController ✅
 
-- [ ] **S3-02**: Implement Company Profile page (TODO)
-  - [ ] Create templates/company/profile.html (view only)
-  - [ ] Display company information
-  - [ ] Show working hours configuration
+- [x] **S3-02**: Implement Company Profile page ✅
+  - [x] Create templates/company/profile.html (view only) ✅
+  - [x] Display company information ✅
+  - [x] Show working hours configuration ✅
 
-- [ ] **S3-03**: Implement Company Edit page (TODO)
-  - [ ] Create templates/company/edit.html
-  - [ ] Form to edit company data
-  - [ ] Logo upload functionality
-  - [ ] Stamp upload functionality
+- [x] **S3-03**: Implement Company Edit page ✅
+  - [x] Create templates/company/form.html (create & edit form) ✅
+  - [x] Form to edit company data ✅
+  - [x] Logo upload functionality ✅
+  - [x] Stamp upload functionality ✅
+  - [x] Add company menu to sidebar ✅
+  - [x] File serving controller for images ✅
 
-- [ ] **S3-04**: Initialize default company data (TODO)
-  - [ ] Create Flyway migration to insert default company
-  - [ ] Add validation: only 1 company record allowed
+- [x] **S3-04**: Initialize default company data ✅
+  - [x] Create Flyway migration V11__insert_default_company.sql ✅
+  - [x] Add validation: only 1 company record allowed ✅
 
 #### Department Management ✅ COMPLETED
 - [x] **S3-05**: Create Department model ✅
@@ -471,43 +473,111 @@
   - [x] Orange theme for contract history card (calendar icon) ✅
   - [x] Consistent hover effects with other history cards ✅
 
+- [x] **S4-BONUS-21**: Employee Status Enhancement - FIRED Status ✅
+  - [x] Add FIRED ("Dipecat") to EmployeeStatus enum ✅
+  - [x] Update employee form to show exit date & reason for RESIGNED/FIRED ✅
+  - [x] Add validation: exit date & reason required for RESIGNED/FIRED statuses ✅
+  - [x] Add FIRED status badge to employee list page (red badge) ✅
+  - [x] Add FIRED status badge to employee detail page ✅
+  - [x] JavaScript: dynamic show/hide exit date & reason fields ✅
+
 ---
 
 ## Phase 3: Lecturer Data (Sprint 5-6)
 
-### Sprint 5: Lecturer Profile Management
+### Sprint 5: Lecturer Profile Management ✅ COMPLETED
 
-#### Lecturer Profile Model
-- [ ] **S5-01**: Create LecturerProfile model
-  - [ ] Create LecturerProfile.java
-  - [ ] Fields: employee_id (FK), nidn, last_education, expertise
-  - [ ] Lecturer rank (Asisten Ahli, Lektor, Lektor Kepala, Profesor)
-  - [ ] Employment status (DOSEN_TETAP, DOSEN_TIDAK_TETAP)
-  - [ ] Work status (ACTIVE, LEAVE, RETIRED)
-  - [ ] Homebase prodi (department_id FK where is_prodi=true)
-  - [ ] Soft delete support
+#### Lecturer Profile Model ✅ COMPLETED
+- [x] **S5-01**: Create LecturerProfile model ✅
+  - [x] Create LecturerProfile.java ✅
+  - [x] Fields: employee_id (FK), nidn, last_education, expertise ✅
+  - [x] Lecturer rank (Asisten Ahli, Lektor, Lektor Kepala, Profesor) ✅
+  - [x] Employment status (DOSEN_TETAP, DOSEN_TIDAK_TETAP) ✅
+  - [x] Work status (ACTIVE, LEAVE, RETIRED) ✅
+  - [x] Homebase prodi (department_id FK where is_prodi=true) ✅
+  - [x] Soft delete support ✅
 
-- [ ] **S5-02**: Create LecturerProfileRepository
-  - [ ] findByEmployeeIdAndDeletedAtIsNull()
-  - [ ] findByNidnAndDeletedAtIsNull()
-  - [ ] findByHomebaseProdiIdAndDeletedAtIsNull()
-  - [ ] findByEmploymentStatusAndWorkStatus()
+- [x] **S5-02**: Create LecturerProfileRepository ✅
+  - [x] findByEmployeeIdAndDeletedAtIsNull() ✅
+  - [x] findByNidnAndDeletedAtIsNull() ✅
+  - [x] findByHomebaseProdiIdAndDeletedAtIsNull() ✅
+  - [x] findByEmploymentStatusAndWorkStatus() ✅
+  - [x] findAllActive() with LEFT JOIN FETCH for all relationships ✅
+  - [x] searchLecturers() with filters ✅
+  - [x] findByIdWithEmployee() to avoid LazyInitializationException ✅
+  - [x] Count queries: countByHomebaseProdiIdAndDeletedAtIsNull(), countByEmploymentStatusAndDeletedAtIsNull(), countByWorkStatusAndDeletedAtIsNull(), countByDeletedAtIsNull() ✅
 
-- [ ] **S5-03**: Create LecturerService
-  - [ ] CRUD lecturer profile
-  - [ ] Validation: NIDN unique
-  - [ ] Validate homebase is a prodi department
+- [x] **S5-03**: Create LecturerService ✅
+  - [x] CRUD lecturer profile ✅
+  - [x] Validation: NIDN unique ✅
+  - [x] Validate homebase is a prodi department (is_prodi=true) ✅
+  - [x] Get lecturer by ID with employee eagerly fetched ✅
+  - [x] Get lecturer by employee ID ✅
+  - [x] Get lecturer by NIDN ✅
+  - [x] Search lecturers with filters (search, rank, empStatus, workStatus, prodiId) ✅
+  - [x] Get lecturers by homebase prodi ✅
+  - [x] Get lecturers by employment status ✅
+  - [x] Get lecturers by work status ✅
+  - [x] Get lecturers by rank ✅
+  - [x] Count queries for stats ✅
+  - [x] Soft delete implementation ✅
 
-- [ ] **S5-04**: Create LecturerController
-  - [ ] List all lecturers
-  - [ ] Create/edit lecturer profile
-  - [ ] View lecturer detail
+- [x] **S5-04**: Create LecturerController ✅
+  - [x] List all lecturers with filters ✅
+  - [x] Create lecturer form page ✅
+  - [x] Edit lecturer form page ✅
+  - [x] View lecturer detail page ✅
+  - [x] Delete lecturer (soft delete) ✅
+  - [x] @PreAuthorize("hasAnyRole('ADMIN', 'HR')") security ✅
 
-- [ ] **S5-05**: Implement Lecturer pages
-  - [ ] Create templates/lecturer/list.html
-  - [ ] Create templates/lecturer/profile-form.html
-  - [ ] Create templates/lecturer/detail.html
-  - [ ] Filter by employment status, work status, homebase
+- [x] **S5-05**: Implement Lecturer pages ✅
+  - [x] Create templates/lecturer/list.html ✅
+  - [x] Create templates/lecturer/form.html ✅
+  - [x] Create templates/lecturer/detail.html ✅
+  - [x] Filter by employment status, work status, homebase ✅
+  - [x] Stats cards: Total lecturers, Permanent lecturers, Active lecturers ✅
+  - [x] Color-coded badges for rank, employment status, work status ✅
+  - [x] Fixed LazyInitializationException with LEFT JOIN FETCH ✅
+  - [x] Fixed form action (removed #request usage for Thymeleaf Spring 6) ✅
+  - [x] Updated detail page header (larger avatar, better layout, blue theme) ✅
+
+---
+
+### 🆕 Payroll Period Configuration ✅ COMPLETED
+
+#### Company Payroll Period Settings
+- [x] **S5-BONUS-01**: Create PayrollPeriodType Enum ✅
+  - [x] Create PayrollPeriodType.java with 6 period types ✅
+  - [x] MONTHLY, HOURLY, WEEKLY, BI_WEEKLY, SEMESTER, DAILY ✅
+  - [x] displayName property with Indonesian labels ✅
+  - [x] description property with explanations ✅
+
+- [x] **S5-BONUS-02**: Add Payroll Period Fields to Company Model ✅
+  - [x] employeePayrollPeriod (default: MONTHLY) ✅
+  - [x] permanentLecturerPayrollPeriod (default: MONTHLY) ✅
+  - [x] contractLecturerPayrollPeriod (default: HOURLY) ✅
+  - [x] payrollCutoffDate (default: 25) ✅
+  - [x] payrollPaymentDate (default: 1) ✅
+
+- [x] **S5-BONUS-03**: Database Migration V12 ✅
+  - [x] V12__add_payroll_period_config.sql ✅
+  - [x] Add 5 columns to companies table ✅
+  - [x] Update existing company records with default values ✅
+
+- [x] **S5-BONUS-04**: Update CompanyController ✅
+  - [x] Add PayrollPeriodType to model in createCompanyForm() ✅
+  - [x] Add PayrollPeriodType to model in editCompanyForm() ✅
+  - [x] Add to validation error handlers ✅
+
+- [x] **S5-BONUS-05**: Update Company Form & Profile Pages ✅
+  - [x] Add payroll period section to company/form.html ✅
+  - [x] Employee payroll period dropdown ✅
+  - [x] Permanent lecturer payroll period dropdown ✅
+  - [x] Contract lecturer payroll period dropdown ✅
+  - [x] Cutoff date & payment date inputs ✅
+  - [x] Add payroll period display section to company/profile.html ✅
+  - [x] Blue gradient theme with icons ✅
+  - [x] Display all 4 settings with descriptions ✅
 
 ---
 
@@ -889,4 +959,4 @@
 
 ---
 
-**Last Updated**: 17 Januari 2026
+**Last Updated**: 17 Januari 2026 - Completed Sprint 5: Lecturer Profile Management (S5-01 to S5-05) + Payroll Period Configuration (S5-BONUS-01 to S5-BONUS-05) - LecturerProfile model, repository, service, controller, list page, form page, detail page, filters, stats, fixed LazyInitializationException, fixed Thymeleaf Spring 6 form action issue; Added PayrollPeriodType enum, Company payroll period fields, V12 migration, updated Company form & profile pages

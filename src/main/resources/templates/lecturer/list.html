@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="space-y-6">
+        <!-- Page Header -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="flex-1">
+                    <h1 class="text-2xl font-bold text-gray-900">Data Dosen</h1>
+                    <p class="text-sm text-gray-500 mt-1">Kelola data dosen dan profil akademik</p>
+                </div>
+                <a th:href="@{/lecturers/create}"
+                   class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 border border-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-all">
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Tambah Dosen
+                </a>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div th:if="${success}" class="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
+            <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-sm text-green-800" th:text="${success}">Success message here</p>
+        </div>
+
+        <div th:if="${error}" class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            <p class="text-sm text-red-800" th:text="${error}">Error message here</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Total Lecturers -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-gray-700">Total Dosen</h3>
+                    <span class="inline-flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                        <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0012 21.75c-2.676 0-5.216-.584-7.499-1.632c-2.435-1.112-4.314-3.486-4.501-11.632" />
+                        </svg>
+                        Dosen
+                    </span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-bold text-gray-900" th:text="${totalLecturers}">0</span>
+                    <span class="text-xs text-gray-500">dosen</span>
+                </div>
+            </div>
+
+            <!-- Permanent Lecturers -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-gray-700">Dosen Tetap</h3>
+                    <span class="inline-flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                        <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Tetap
+                    </span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-bold text-gray-900" th:text="${permanentCount}">0</span>
+                    <span class="text-xs text-gray-500">dosen</span>
+                </div>
+            </div>
+
+            <!-- Active Lecturers -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-gray-700">Aktif Mengajar</h3>
+                    <span class="inline-flex items-center gap-1 text-xs font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
+                        <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Aktif
+                    </span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-bold text-gray-900" th:text="${activeCount}">0</span>
+                    <span class="text-xs text-gray-500">dosen</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+            <form th:action="@{/lecturers}" method="get" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <!-- Search -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Cari</label>
+                    <input type="text"
+                           name="search"
+                           th:value="${search}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                           placeholder="Nama / NIK / NIDN">
+                </div>
+
+                <!-- Rank -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Jenjang</label>
+                    <select name="rank"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        <option value="">Semua</option>
+                        <option th:each="r : ${rankOptions}"
+                                th:value="${r}"
+                                th:text="${r.displayName}"
+                                th:selected="${rank != null and rank == r}">Rank</option>
+                    </select>
+                </div>
+
+                <!-- Employment Status -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Status Kepegawaian</label>
+                    <select name="empStatus"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        <option value="">Semua</option>
+                        <option th:each="es : ${empStatusOptions}"
+                                th:value="${es}"
+                                th:text="${es.displayName}"
+                                th:selected="${empStatus != null and empStatus == es}">Emp Status</option>
+                    </select>
+                </div>
+
+                <!-- Work Status -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Status Kerja</label>
+                    <select name="workStatus"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        <option value="">Semua</option>
+                        <option th:each="ws : ${workStatusOptions}"
+                                th:value="${ws}"
+                                th:text="${ws.displayName}"
+                                th:selected="${workStatus != null and workStatus == ws}">Work Status</option>
+                    </select>
+                </div>
+
+                <!-- Homebase Prodi -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Homebase Prodi</label>
+                    <select name="prodiId"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        <option value="">Semua</option>
+                        <option th:each="prodi : ${prodis}"
+                                th:value="${prodi.id}"
+                                th:text="${prodi.name}"
+                                th:selected="${prodiId != null and prodiId == prodi.id}">Prodi</option>
+                    </select>
+                </div>
+
+                <!-- Filter Actions -->
+                <div class="md:col-span-5 flex items-end gap-2">
+                    <button type="submit"
+                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                        Filter
+                    </button>
+                    <a th:href="@{/lecturers}"
+                       class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Lecturer List -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-5 py-4 text-left">
+                                <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Dosen</span>
+                            </th>
+                            <th class="px-5 py-4 text-left">
+                                <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">NIDN</span>
+                            </th>
+                            <th class="px-5 py-4 text-left">
+                                <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Jenjang</span>
+                            </th>
+                            <th class="px-5 py-4 text-left">
+                                <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Status Kepegawaian</span>
+                            </th>
+                            <th class="px-5 py-4 text-left">
+                                <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Status Kerja</span>
+                            </th>
+                            <th class="px-5 py-4 text-left">
+                                <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Homebase</span>
+                            </th>
+                            <th class="px-5 py-4 text-right">
+                                <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Aksi</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr th:each="lecturer : ${lecturers}" class="hover:bg-gray-50 transition-colors">
+                            <td class="px-5 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                                        <span th:text="${lecturer.employee != null ? lecturer.employee.fullName.substring(0,1).toUpperCase() : '-'}">-</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900" th:text="${lecturer.fullName}">Nama Dosen</p>
+                                        <p class="text-xs text-gray-500" th:text="${lecturer.nik}">NIK</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-5 py-4">
+                                <p class="text-sm text-gray-900" th:text="${lecturer.nidn != null ? lecturer.nidn : '-'}">-</p>
+                            </td>
+                            <td class="px-5 py-4">
+                                <span th:if="${lecturer.lecturerRank != null}"
+                                      th:text="${lecturer.lecturerRank.displayName}"
+                                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                      th:classappend="${lecturer.lecturerRank == T(com.hris.model.enums.LecturerRank).PROFESOR ? 'bg-purple-100 text-purple-700' : lecturer.lecturerRank == T(com.hris.model.enums.LecturerRank).LEKTOR_KEPALA ? 'bg-blue-100 text-blue-700' : lecturer.lecturerRank == T(com.hris.model.enums.LecturerRank).LEKTOR ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}">Rank</span>
+                            </td>
+                            <td class="px-5 py-4">
+                                <span th:if="${lecturer.employmentStatus != null}"
+                                      th:text="${lecturer.employmentStatus.displayName}"
+                                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                      th:classappend="${lecturer.employmentStatus == T(com.hris.model.enums.LecturerEmploymentStatus).DOSEN_TETAP ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">Emp Status</span>
+                            </td>
+                            <td class="px-5 py-4">
+                                <span th:if="${lecturer.workStatus != null}"
+                                      th:text="${lecturer.workStatus.displayName}"
+                                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                      th:classappend="${lecturer.workStatus == T(com.hris.model.enums.LecturerWorkStatus).ACTIVE ? 'bg-blue-100 text-blue-700' : lecturer.workStatus == T(com.hris.model.enums.LecturerWorkStatus).LEAVE ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'}">Work Status</span>
+                            </td>
+                            <td class="px-5 py-4">
+                                <p class="text-sm text-gray-600" th:text="${lecturer.homebaseProdi != null ? lecturer.homebaseProdi.name : '-'}">-</p>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="flex items-center justify-end gap-1">
+                                    <a th:href="@{/lecturers/{id}(id=${lecturer.id})}"
+                                       class="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                       title="Lihat Detail">
+                                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431.0 .639 0C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                    </a>
+                                    <a th:href="@{/lecturers/{id}/edit(id=${lecturer.id})}"
+                                       class="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                       title="Edit">
+                                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                        </svg>
+                                    </a>
+                                    <form th:action="@{/lecturers/{id}/delete(id=${lecturer.id})}"
+                                          method="post"
+                                          onsubmit="return confirm('Hapus data dosen ini?');"
+                                          class="inline">
+                                        <button type="submit"
+                                                class="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                title="Hapus">
+                                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077L8.72 22.53a1.125 1.125 0 01-1.915-.67L2.677 16.531a2.25 2.25 0 012.153-2.185l5.198-5.198c.342-.052.682-.107 1.022-.166m-1.022.165L18.16 4.327a2.25 2.25 0 012.244-2.077L15.336 1.47a1.125 1.125 0 011.915.668l5.198 5.198c.342.052.682.107 1.022.166z" />
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${lecturers.isEmpty()}">
+                            <td colspan="8" class="px-5 py-12 text-center">
+                                <div class="flex flex-col items-center">
+                                    <svg class="w-12 h-12 text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0012 21.75c-2.676 0-5.216-.584-7.499-1.632c-2.286-.968-4.144-2.942-4.144-7.018zM12.75 13.5h.008v.008H12v-.008z" />
+                                    </svg>
+                                    <p class="text-sm text-gray-500">Tidak ada data dosen</p>
+                                    <a th:href="@{/lecturers/create}"
+                                       class="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 border border-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-all">
+                                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                        </svg>
+                                        Tambah Dosen
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

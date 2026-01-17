@@ -3,6 +3,7 @@ com/hris/model/enums/EmploymentStatusChange.class
 com/hris/config/WebConfig$1.class
 com/hris/repository/EmployeeRepository.class
 com/hris/model/BaseEntity.class
+com/hris/controller/LecturerController.class
 com/hris/model/Department.class
 com/hris/repository/EmployeeRoleRepository.class
 com/hris/model/ContractHistory.class
@@ -10,14 +11,18 @@ com/hris/dto/LoginRequestDto.class
 com/hris/model/enums/LecturerEmploymentStatus.class
 com/hris/service/PositionService.class
 com/hris/repository/SalaryHistoryRepository.class
+com/hris/model/enums/PayrollPeriodTypeConverter.class
+com/hris/model/enums/PayrollPeriodType.class
 com/hris/service/DepartmentService$DepartmentDto.class
 com/hris/model/enums/LeaveType.class
 com/hris/repository/DepartmentRepository.class
 com/hris/model/enums/LecturerRank.class
 com/hris/model/enums/LecturerWorkStatus.class
+com/hris/repository/LecturerProfileRepository.class
 com/hris/config/SecurityConfig.class
 com/hris/model/enums/EmploymentStatus.class
 com/hris/controller/ContractHistoryController$1.class
+com/hris/model/LecturerProfile.class
 com/hris/model/enums/Gender.class
 com/hris/service/EmployeeJobHistoryService.class
 com/hris/model/enums/MaritalStatus.class
@@ -27,6 +32,7 @@ com/hris/controller/LoginDebugController.class
 com/hris/model/Position$Level.class
 com/hris/model/EmployeeRole.class
 com/hris/config/WebConfig.class
+com/hris/service/CompanyService.class
 com/hris/security/CustomAuthenticationProvider.class
 com/hris/security/CustomUserDetailsService.class
 com/hris/service/SalaryHistoryService.class
@@ -54,6 +60,7 @@ com/hris/model/LeaveRequest.class
 com/hris/controller/JobHistoryController.class
 com/hris/model/SalaryHistory.class
 com/hris/repository/EmployeeJobHistoryRepository.class
+com/hris/controller/CompanyController.class
 com/hris/controller/DebugController.class
 com/hris/controller/PasswordEncoderTestController.class
 com/hris/service/EmployeeService.class
@@ -61,7 +68,10 @@ com/hris/controller/AuthController$1.class
 com/hris/controller/PositionController.class
 com/hris/model/enums/LeaveRequestStatus.class
 com/hris/repository/ContractHistoryRepository.class
+com/hris/service/LecturerService.class
 com/hris/model/enums/AttendanceStatus.class
+com/hris/model/Company.class
+com/hris/repository/CompanyRepository.class
 com/hris/controller/EmployeeController.class
 com/hris/security/CustomUserDetails.class
 com/hris/model/enums/PayrollStatus.class
