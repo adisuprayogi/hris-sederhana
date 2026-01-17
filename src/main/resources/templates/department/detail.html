@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="space-y-6">
+        <!-- Page Header -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <a th:href="@{/departments}" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <svg class="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                        </svg>
+                    </a>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900" th:text="${department.name}">Department Name</h1>
+                        <p class="text-sm text-gray-500" th:if="${department.description}" th:text="${department.description}">Description</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a th:href="@{/departments/{id}/edit(id=${department.id})}"
+                       class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897l16.509-16.509z" />
+                        </svg>
+                        Edit
+                    </a>
+                    <button type="button"
+                            onclick="showDeleteModal()"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 bg-red-600 border border-red-600 rounded-lg text-sm font-medium text-white hover:bg-red-700 transition-all">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 01-7.5 0" />
+                        </svg>
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Breadcrumb -->
+        <div th:if="${!parentChain.isEmpty()}" class="flex items-center gap-2 text-sm">
+            <a th:href="@{/departments}" class="text-gray-500 hover:text-gray-700">Departments</a>
+            <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+            <th:block th:each="parent, iterStat : ${parentChain}">
+                <a th:href="@{/departments/{id}(id=${parent.id})}" class="text-gray-500 hover:text-gray-700" th:text="${parent.name}">Parent</a>
+                <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" th:if="${!iterStat.last}">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+            </th:block>
+            <span class="text-gray-900 font-medium" th:text="${department.name}">Department</span>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <!-- Children Count -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-gray-700">Sub-departments</h3>
+                    <button class="p-1 hover:bg-gray-100 rounded-lg transition-colors">
+                        <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-bold text-gray-900" th:text="${department.childrenCount}">0</span>
+                    <span class="text-xs text-gray-500">child departments</span>
+                </div>
+            </div>
+
+            <!-- Employee Count -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border border border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-gray-700">Employees</h3>
+                    <button class="p-1 hover:bg-gray-100 rounded-lg transition-colors">
+                        <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-bold text-gray-900" th:text="${department.employeeCount}">0</span>
+                    <span class="text-xs text-gray-500">employees</span>
+                </div>
+            </div>
+
+            <!-- Head -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-gray-700">Department Head</h3>
+                </div>
+                <div th:if="${department.headName != null}" class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                        </svg>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900" th:text="${department.headName}">Head Name</span>
+                </div>
+                <p th:if="${department.headName == null}" class="text-sm text-gray-500">Not assigned</p>
+            </div>
+
+            <!-- Type -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-gray-700">Type</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full"
+                          th:class="${department.isProdi ? 'text-purple-600 bg-purple-50' : 'text-gray-600 bg-gray-50'}">
+                        <span th:text="${department.isProdi} ? 'Study Program' : 'Department'">Department</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Department Info Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-5 border-b border-gray-200">
+                <h2 class="text-base font-semibold text-gray-900">Department Information</h2>
+            </div>
+            <div class="p-5">
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Department Name</dt>
+                        <dd class="mt-1 text-sm text-gray-900" th:text="${department.name}">Name</dd>
+                    </div>
+                    <div class="sm:col-span-1" th:if="${department.kodeProdi != null and department.kodeProdi != ''}">
+                        <dt class="text-sm font-medium text-gray-500">Program Code</dt>
+                        <dd class="mt-1 text-sm text-gray-900" th:text="${department.kodeProdi}">Kode</dd>
+                    </div>
+                    <div class="sm:col-span-2" th:if="${department.description != null and department.description != ''}">
+                        <dt class="text-sm font-medium text-gray-500">Description</dt>
+                        <dd class="mt-1 text-sm text-gray-900" th:text="${department.description}">Description</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Child Departments -->
+        <div th:if="${!children.isEmpty()}" class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-5 border-b border-gray-200">
+                <h2 class="text-base font-semibold text-gray-900">Child Departments</h2>
+            </div>
+            <div class="divide-y divide-gray-200">
+                <div th:each="child : ${children}" class="p-5 hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h6m-9 0h3m3 0h3m-3 6h.75M8.25 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-sm font-semibold text-gray-900" th:text="${child.name}">Department Name</h3>
+                                <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded"
+                                      th:if="${child.isProdi}">Prodi</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-0.5" th:if="${child.description}" th:text="${child.description}">Description</p>
+                        </div>
+                    </div>
+                    <a th:href="@{/departments/{id}(id=${child.id})}"
+                       class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                        View Details
+                        <svg class="w-4 h-4 inline-block ml-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Children State -->
+        <div th:if="${children.isEmpty()}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h6m-9 0h3m3 0h3m-3 6h.75M8.25 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">No Child Departments</h3>
+            <p class="text-sm text-gray-500">This department has no sub-departments</p>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-gray-900/50 hidden items-center justify-center z-[9999] p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+        <div class="flex items-start gap-4 mb-4">
+            <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+            </div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold text-gray-900">Hapus Department</h3>
+                <p class="text-sm text-gray-500 mt-1">
+                    Apakah Anda yakin ingin menghapus <strong class="text-gray-900" th:text="${department.name}">department ini</strong>?
+                </p>
+            </div>
+        </div>
+        <form id="deleteForm" th:action="@{/departments/{id}/delete(id=${department.id})}" method="post" class="flex justify-end gap-3">
+            <button type="button" onclick="closeDeleteModal()"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                Batal
+            </button>
+            <button type="submit"
+                    class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
+                Hapus
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function showDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        console.log('Delete modal opened');
+    }
+
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        console.log('Delete modal closed');
+    }
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDeleteModal();
+        }
+    });
+
+    // Close modal on backdrop click
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDeleteModal();
+        }
+    });
+</script>
+
+</html>

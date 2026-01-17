@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title != null ? title + ' - HRIS' : 'HRIS Sederhana'}">HRIS Sederhana</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
+
+    <!-- Tailwind CSS (Local Build) -->
+    <link rel="stylesheet" href="/dist/css/main.css?v=1.0.7">
+
+    <!-- Alpine.js (Local Build) -->
+    <script defer src="/dist/js/main.js?v=1.0.7"></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen" x-data="{ mobileMenuOpen: false }">
+
+    <!-- Top Navigation Bar -->
+    <nav class="bg-blue-900 border-b border-blue-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+
+                <!-- Left: Logo & Main Menu -->
+                <div class="flex items-center gap-8">
+                    <!-- Logo -->
+                    <a th:href="@{/dashboard}" class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/30">
+                            <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                            </svg>
+                        </div>
+                        <div class="hidden sm:block">
+                            <h1 class="text-lg font-bold text-white">HRIS</h1>
+                            <p class="text-xs text-slate-400" th:text="${selectedRole != null ? selectedRole : 'Dashboard'}">Dashboard</p>
+                        </div>
+                    </a>
+
+                    <!-- Desktop Navigation Menu -->
+                    <div class="hidden lg:flex items-center gap-1">
+                        <!-- Dashboard -->
+                        <a th:href="@{/dashboard}"
+                           th:class="'px-4 py-2 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'dashboard'} ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-300 hover:bg-blue-800 hover:text-white')">
+                            Dashboard
+                        </a>
+
+                        <!-- Administration Dropdown (Admin & HR) -->
+                        <div th:if="${selectedRole == 'ADMIN' or selectedRole == 'HR'}" x-data="{ open: false }" class="relative">
+                            <button @click="open = !open" @click.outside="open = false"
+                                    th:class="'flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'departments' or activePage == 'positions' or activePage == 'employees' or activePage == 'lecturers'} ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-300 hover:bg-blue-800 hover:text-white')">
+                                Administration
+                                <svg class="w-4 h-4 transition-transform" :class="open ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                </svg>
+                            </button>
+                            <div x-show="open" x-transition x-cloak
+                                 class="absolute left-0 mt-3 w-56 bg-blue-800 rounded-2xl shadow-2xl border border-blue-700 py-2 z-50">
+                                <a th:href="@{/departments}"
+                                   th:class="'flex items-center gap-3 px-4 py-3 text-sm rounded-xl transition-all ' + (${activePage == 'departments'} ? 'text-white bg-blue-600' : 'text-slate-300 hover:bg-blue-700 hover:text-white')">
+                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                                    </svg>
+                                    Departments
+                                </a>
+                                <a th:href="@{/positions}"
+                                   th:class="'flex items-center gap-3 px-4 py-3 text-sm rounded-xl transition-all ' + (${activePage == 'positions'} ? 'text-white bg-blue-600' : 'text-slate-300 hover:bg-blue-700 hover:text-white')">
+                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                    </svg>
+                                    Positions
+                                </a>
+                                <a th:href="@{/employees}"
+                                   th:class="'flex items-center gap-3 px-4 py-3 text-sm rounded-xl transition-all ' + (${activePage == 'employees'} ? 'text-white bg-blue-600' : 'text-slate-300 hover:bg-blue-700 hover:text-white')">
+                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 5.472m0 0a9.09 9.09 0 00-5.963 1.584c-.466.297-.877.655-1.228 1.066m0 0A15.996 15.996 0 013 9.75c0-5.591 3.824-10.29 9-11.622 5.176 1.332 9 6.03 9 11.622m-9 5.25v.008v.008v-.008z" />
+                                    </svg>
+                                    Employees
+                                </a>
+                                <a th:href="@{/lecturers}"
+                                   th:class="'flex items-center gap-3 px-4 py-3 text-sm rounded-xl transition-all ' + (${activePage == 'lecturers'} ? 'text-white bg-blue-600' : 'text-slate-300 hover:bg-blue-700 hover:text-white')">
+                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                                    </svg>
+                                    Lecturers
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Activities Dropdown (All roles) -->
+                        <div x-data="{ open: false }" class="relative">
+                            <button @click="open = !open" @click.outside="open = false"
+                                    th:class="'flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'attendance' or activePage == 'leave'} ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-300 hover:bg-blue-800 hover:text-white')">
+                                Activities
+                                <svg class="w-4 h-4 transition-transform" :class="open ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                </svg>
+                            </button>
+                            <div x-show="open" x-transition x-cloak
+                                 class="absolute left-0 mt-3 w-48 bg-blue-800 rounded-2xl shadow-2xl border border-blue-700 py-2 z-50">
+                                <a th:href="@{/attendance}"
+                                   th:class="'flex items-center gap-3 px-4 py-3 text-sm rounded-xl transition-all ' + (${activePage == 'attendance'} ? 'text-white bg-blue-600' : 'text-slate-300 hover:bg-blue-700 hover:text-white')">
+                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Attendance
+                                </a>
+                                <a th:href="@{/leave}"
+                                   th:class="'flex items-center gap-3 px-4 py-3 text-sm rounded-xl transition-all ' + (${activePage == 'leave'} ? 'text-white bg-blue-600' : 'text-slate-300 hover:bg-blue-700 hover:text-white')">
+                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                    Leave
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Payroll Dropdown (Admin & HR) -->
+                        <div th:if="${selectedRole == 'ADMIN' or selectedRole == 'HR'}" x-data="{ open: false }" class="relative">
+                            <button @click="open = !open" @click.outside="open = false"
+                                    th:class="'flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'payroll' or activePage == 'lecturer-payroll'} ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-300 hover:bg-blue-800 hover:text-white')">
+                                Payroll
+                                <svg class="w-4 h-4 transition-transform" :class="open ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                </svg>
+                            </button>
+                            <div x-show="open" x-transition x-cloak
+                                 class="absolute left-0 mt-3 w-56 bg-blue-800 rounded-2xl shadow-2xl border border-blue-700 py-2 z-50">
+                                <a th:href="@{/payroll}"
+                                   th:class="'flex items-center gap-3 px-4 py-3 text-sm rounded-xl transition-all ' + (${activePage == 'payroll'} ? 'text-white bg-blue-600' : 'text-slate-300 hover:bg-blue-700 hover:text-white')">
+                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                                    </svg>
+                                    Employee Payroll
+                                </a>
+                                <a th:href="@{/lecturer-payroll}"
+                                   th:class="'flex items-center gap-3 px-4 py-3 text-sm rounded-xl transition-all ' + (${activePage == 'lecturer-payroll'} ? 'text-white bg-blue-600' : 'text-slate-300 hover:bg-blue-700 hover:text-white')">
+                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                                    </svg>
+                                    Lecturer Payroll
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- My Payslips (Employee & Dosen only) -->
+                        <div th:if="${selectedRole == 'EMPLOYEE' or selectedRole == 'DOSEN'}">
+                            <a th:href="@{/my-payslips}"
+                               th:class="'px-4 py-2 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'my-payslips'} ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-300 hover:bg-blue-800 hover:text-white')">
+                                My Payslips
+                            </a>
+                        </div>
+
+                        <!-- System Dropdown (Admin only) -->
+                        <div th:if="${selectedRole == 'ADMIN'}" x-data="{ open: false }" class="relative">
+                            <button @click="open = !open" @click.outside="open = false"
+                                    th:class="'flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'company' or activePage == 'users' or activePage == 'activity-log'} ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-300 hover:bg-blue-800 hover:text-white')">
+                                System
+                                <svg class="w-4 h-4 transition-transform" :class="open ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                </svg>
+                            </button>
+                            <div x-show="open" x-transition x-cloak
+                                 class="absolute left-0 mt-3 w-56 bg-blue-800 rounded-2xl shadow-2xl border border-blue-700 py-2 z-50">
+                                <a th:href="@{/company/profile}"
+                                   th:class="'flex items-center gap-3 px-4 py-3 text-sm rounded-xl transition-all ' + (${activePage == 'company'} ? 'text-white bg-blue-600' : 'text-slate-300 hover:bg-blue-700 hover:text-white')">
+                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                                    </svg>
+                                    Company
+                                </a>
+                                <a th:href="@{/users}"
+                                   th:class="'flex items-center gap-3 px-4 py-3 text-sm rounded-xl transition-all ' + (${activePage == 'users'} ? 'text-white bg-blue-600' : 'text-slate-300 hover:bg-blue-700 hover:text-white')">
+                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.75 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                                    </svg>
+                                    Users
+                                </a>
+                                <a th:href="@{/activity-log}"
+                                   th:class="'flex items-center gap-3 px-4 py-3 text-sm rounded-xl transition-all ' + (${activePage == 'activity-log'} ? 'text-white bg-blue-600' : 'text-slate-300 hover:bg-blue-700 hover:text-white')">
+                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Activity Log
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: User Menu & Mobile Toggle -->
+                <div class="flex items-center gap-4">
+                    <!-- Profile Dropdown -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" @click.outside="open = false" class="flex items-center gap-3 focus:outline-none">
+                            <div class="hidden sm:block text-right">
+                                <p class="text-sm font-medium text-white" th:text="${user != null ? user.fullName : 'Administrator'}">Administrator</p>
+                                <p class="text-xs text-slate-400" th:text="${user != null ? user.email : 'admin@hris.local'}">admin@hris.local</p>
+                            </div>
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/30 ring-2 ring-blue-500/50">
+                                <svg class="w-5 h-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                </svg>
+                            </div>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div x-show="open" x-transition x-cloak class="absolute right-0 mt-3 w-56 bg-blue-800 rounded-2xl shadow-2xl border border-blue-700 py-2 z-50">
+                            <!-- Profile -->
+                            <a href="#" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-blue-700 hover:text-white rounded-xl transition-all">
+                                <svg class="w-4 h-4 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                </svg>
+                                Profile
+                            </a>
+
+                            <!-- Switch Role -->
+                            <a th:href="@{/auth/select-role}" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-blue-700 hover:text-white rounded-xl transition-all">
+                                <svg class="w-4 h-4 text-purple-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                                </svg>
+                                Switch Role
+                            </a>
+
+                            <!-- Divider -->
+                            <div class="border-t border-blue-700 my-2"></div>
+
+                            <!-- Logout -->
+                            <form th:action="@{/auth/logout}" method="post">
+                                <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-900/30 hover:text-red-300 rounded-xl transition-all">
+                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l-3-3m0 0l-3 3m3-3H12" />
+                                    </svg>
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-xl hover:bg-blue-800 transition-colors">
+                        <svg x-show="!mobileMenuOpen" class="w-6 h-6 text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                        </svg>
+                        <svg x-show="mobileMenuOpen" x-cloak class="w-6 h-6 text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div x-show="mobileMenuOpen" x-transition x-cloak class="lg:hidden border-t border-slate-800 bg-slate-900">
+            <div class="px-4 py-4 space-y-2">
+                <!-- Dashboard -->
+                <a th:href="@{/dashboard}"
+                   th:class="'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'dashboard'} ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-blue-800')">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                    </svg>
+                    Dashboard
+                </a>
+
+                <!-- Administration (Admin & HR) -->
+                <div th:if="${selectedRole == 'ADMIN' or selectedRole == 'HR'}">
+                    <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Administration</p>
+                    <a th:href="@{/departments}"
+                       th:class="'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'departments'} ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-blue-800')">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                        </svg>
+                        Departments
+                    </a>
+                    <a th:href="@{/positions}"
+                       th:class="'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'positions'} ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-blue-800')">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                        </svg>
+                        Positions
+                    </a>
+                    <a th:href="@{/employees}"
+                       th:class="'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'employees'} ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-blue-800')">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 5.472m0 0a9.09 9.09 0 00-5.963 1.584c-.466.297-.877.655-1.228 1.066m0 0A15.996 15.996 0 013 9.75c0-5.591 3.824-10.29 9-11.622 5.176 1.332 9 6.03 9 11.622m-9 5.25v.008v.008v-.008z" />
+                        </svg>
+                        Employees
+                    </a>
+                    <a th:href="@{/lecturers}"
+                       th:class="'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'lecturers'} ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-blue-800')">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                        </svg>
+                        Lecturers
+                    </a>
+                </div>
+
+                <!-- Activities (All roles) -->
+                <div>
+                    <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Activities</p>
+                    <a th:href="@{/attendance}"
+                       th:class="'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'attendance'} ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-blue-800')">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Attendance
+                    </a>
+                    <a th:href="@{/leave}"
+                       th:class="'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'leave'} ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-blue-800')">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        Leave
+                    </a>
+                </div>
+
+                <!-- Payroll (Admin & HR only) -->
+                <div th:if="${selectedRole == 'ADMIN' or selectedRole == 'HR'}">
+                    <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Payroll</p>
+                    <a th:href="@{/payroll}"
+                       th:class="'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'payroll'} ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-blue-800')">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                        </svg>
+                        Employee Payroll
+                    </a>
+                    <a th:href="@{/lecturer-payroll}"
+                       th:class="'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'lecturer-payroll'} ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-blue-800')">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                        </svg>
+                        Lecturer Payroll
+                    </a>
+                </div>
+
+                <!-- My Payslips (Employee & Dosen only) -->
+                <div th:if="${selectedRole == 'EMPLOYEE' or selectedRole == 'DOSEN'}">
+                    <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Payroll</p>
+                    <a th:href="@{/my-payslips}"
+                       th:class="'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'my-payslips'} ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-blue-800')">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                        </svg>
+                        My Payslips
+                    </a>
+                </div>
+
+                <!-- System (Admin only) -->
+                <div th:if="${selectedRole == 'ADMIN'}">
+                    <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">System</p>
+                    <a th:href="@{/company/profile}"
+                       th:class="'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'company'} ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-blue-800')">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                        </svg>
+                        Company
+                    </a>
+                    <a th:href="@{/users}"
+                       th:class="'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'users'} ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-blue-800')">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.75 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                        </svg>
+                        Users
+                    </a>
+                    <a th:href="@{/activity-log}"
+                       th:class="'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ' + (${activePage == 'activity-log'} ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-blue-800')">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Activity Log
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div layout:fragment="content">
+            <!-- Content will be inserted here -->
+        </div>
+    </main>
+
+</body>
+</html>

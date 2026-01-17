@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - HRIS Sederhana</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
+
+    <!-- Tailwind CSS (Local Build) -->
+    <link rel="stylesheet" th:href="@{/dist/css/main.css(v='1.0.5')}">
+
+    <!-- Alpine.js (Local Build) -->
+    <script defer th:src="@{/dist/js/main.js}"></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-100 flex items-center justify-center p-4">
+
+    <div style="max-width: 448px; width: 100%;" class="relative">
+        <!-- Logo & Title -->
+        <div class="text-center mb-8">
+            <div style="width: 80px; height: 80px;" class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-4">
+                <svg style="width: 40px; height: 40px;" class="text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205l3 1m1.5.5l-1.5-.5M6.75 7.364V3h-3v18m3-13.636l10.5-3.819" />
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">HRIS Sederhana</h1>
+            <p class="text-slate-600">Sign in to access your dashboard</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <h2 class="text-xl font-semibold text-slate-900 mb-6">Sign In</h2>
+
+            <!-- Error Message -->
+            <div th:if="${param.error}" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start">
+                <svg style="width: 20px; height: 20px;" class="text-red-500 mr-3 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+                <div>
+                    <p class="text-sm font-medium text-red-800">Login Failed</p>
+                    <p class="text-sm text-red-600">Invalid email or password. Please try again.</p>
+                </div>
+            </div>
+
+            <!-- Logout Message -->
+            <div th:if="${param.logout}" class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start">
+                <svg style="width: 20px; height: 20px;" class="text-green-500 mr-3 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                    <p class="text-sm font-medium text-green-800">Logged Out</p>
+                    <p class="text-sm text-green-600">You have been successfully logged out.</p>
+                </div>
+            </div>
+
+            <!-- Login Form -->
+            <form th:action="@{/auth/login}" method="post" class="space-y-4">
+                <!-- Email -->
+                <div>
+                    <label for="email" class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                            <svg style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m16.5 0l-8.25 8.25m0 0L5.25 6.75m13.5 6.75H2.25" />
+                            </svg>
+                        </span>
+                        <input type="email" id="email" name="email" required
+                               class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Enter your email">
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label for="password" class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                            <svg style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                            </svg>
+                        </span>
+                        <input type="password" id="password" name="password" required
+                               class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Enter your password">
+                    </div>
+                </div>
+
+                <!-- Remember Me -->
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="remember-me" class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-slate-600">Remember me</span>
+                    </label>
+                    <a href="#" class="text-sm text-blue-600 hover:text-blue-700">Forgot password?</a>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit"
+                        class="w-full py-3 px-4 bg-blue-700 text-white font-medium rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-200 transition-all">
+                    Sign In
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="my-6 flex items-center">
+                <div class="flex-1 border-t border-slate-200"></div>
+                <span class="px-4 text-sm text-slate-500">Demo Credentials</span>
+                <div class="flex-1 border-t border-slate-200"></div>
+            </div>
+
+            <!-- Demo Accounts -->
+            <div class="space-y-2">
+                <div class="p-3 bg-slate-50 rounded-lg text-sm">
+                    <span class="font-medium text-slate-700">Admin/HR:</span>
+                    <span class="text-slate-600 ml-2">admin@hris.local / admin123</span>
+                </div>
+                <div class="p-3 bg-slate-50 rounded-lg text-sm">
+                    <span class="font-medium text-slate-700">All Roles:</span>
+                    <span class="text-slate-600 ml-2">allroles@hris.local / test123</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <p class="text-center text-sm text-slate-500 mt-6">
+            &copy; <span th:text="${#calendars.format(#calendars.createNow(), 'yyyy')}">2026</span> HRIS Sederhana. All rights reserved.
+        </p>
+    </div>
+
+</body>
+</html>

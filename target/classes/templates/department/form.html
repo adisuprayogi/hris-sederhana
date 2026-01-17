@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <!-- Breadcrumb -->
+    <div class="mb-4">
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="flex items-center space-x-2 text-sm">
+                <li>
+                    <a href="/departments" class="text-gray-600 hover:text-gray-900">Departments</a>
+                </li>
+                <li class="text-gray-400">/</li>
+                <li class="text-gray-900 font-medium" th:text="${isEdit ? 'Edit Department' : 'Add Department'}">Add Department</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Page Header -->
+    <div class="mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900" th:text="${isEdit ? 'Edit Department' : 'Add Department'}">Add Department</h1>
+                <p class="text-gray-600 mt-1" th:text="${isEdit ? 'Update department information' : 'Create a new department'}">Create a new department</p>
+            </div>
+            <a href="/departments"
+               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                Back to List
+            </a>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    <div th:if="${error}" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start">
+        <svg class="w-5 h-5 text-red-500 mr-3 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+        </svg>
+        <p class="text-sm text-red-800" th:text="${error}">Error message here</p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="max-w-2xl">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900" th:text="${isEdit ? 'Edit Department' : 'New Department'}">New Department</h2>
+                <p class="text-sm text-gray-600 mt-1">Fill in the department details below</p>
+            </div>
+
+            <form th:action="${isEdit ? '/departments/' + department.id + '/edit' : '/departments/create'}"
+                  method="post"
+                  class="p-6 space-y-6"
+                  th:object="${department}">
+                <!-- Department Name -->
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+                        Department Name <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text"
+                           id="name"
+                           name="name"
+                           th:value="*{name}"
+                           required
+                           th:classappend="${#fields.hasErrors('name')} ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'"
+                           class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 outline-none transition-all"
+                           placeholder="e.g., Information Technology">
+                    <p th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="text-xs text-red-600 mt-1"></p>
+                    <p th:unless="${#fields.hasErrors('name')}" class="text-xs text-gray-500 mt-1">The official name of the department</p>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+                        Description
+                    </label>
+                    <textarea id="description"
+                              name="description"
+                              rows="3"
+                              th:field="*{description}"
+                              th:classappend="${#fields.hasErrors('description')} ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'"
+                              class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 outline-none transition-all resize-none"
+                              placeholder="Brief description of the department's function"></textarea>
+                    <p th:if="${#fields.hasErrors('description')}" th:errors="*{description}" class="text-xs text-red-600 mt-1"></p>
+                </div>
+
+                <!-- Parent Department -->
+                <div>
+                    <label for="parentId" class="block text-sm font-medium text-gray-700 mb-1">
+                        Parent Department
+                    </label>
+                    <select id="parentId"
+                            name="parent"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        <option value="">No Parent (Root Department)</option>
+                        <option th:each="parent : ${parentOptions}"
+                                th:value="${parent.id}"
+                                th:text="${parent.name}"
+                                th:selected="${department.parent != null && department.parent.id == parent.id}">
+                            Parent Name
+                        </option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Select the parent department to create hierarchy</p>
+                </div>
+
+                <!-- Head of Department -->
+                <div>
+                    <label for="headId" class="block text-sm font-medium text-gray-700 mb-1">
+                        Head of Department
+                    </label>
+                    <select id="headId"
+                            name="head"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        <option value="">Not Assigned</option>
+                        <option th:if="${department.head != null}"
+                                th:value="${department.head.id}"
+                                th:text="${department.head.fullName}"
+                                selected>
+                            <span th:text="${department.head.fullName}">Head Name</span>
+                        </option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">The employee who leads this department</p>
+                    <p class="text-xs text-blue-600 mt-1">Note: You can set this after creating employees</p>
+                </div>
+
+                <!-- Study Program (Prodi) -->
+                <div>
+                    <div class="flex items-center">
+                        <input type="checkbox"
+                               id="isProdi"
+                               name="isProdi"
+                               th:checked="${department.isProdi}"
+                               class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <label for="isProdi" class="ml-2 text-sm text-gray-700">
+                            This is a Study Program (Prodi)
+                        </label>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1 ml-6">Mark if this department is a study program</p>
+                </div>
+
+                <!-- Study Program Code -->
+                <div id="kodeProdiWrapper">
+                    <label for="kodeProdi" class="block text-sm font-medium text-gray-700 mb-1">
+                        Study Program Code
+                    </label>
+                    <input type="text"
+                           id="kodeProdi"
+                           name="kodeProdi"
+                           th:value="*{kodeProdi}"
+                           th:classappend="${#fields.hasErrors('kodeProdi')} ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'"
+                           class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 outline-none transition-all"
+                           placeholder="e.g., TI123">
+                    <p th:if="${#fields.hasErrors('kodeProdi')}" th:errors="*{kodeProdi}" class="text-xs text-red-600 mt-1"></p>
+                    <p th:unless="${#fields.hasErrors('kodeProdi')}" class="text-xs text-gray-500 mt-1">Official study program code (3-10 karakter huruf kapital dan angka)</p>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+                    <a href="/departments"
+                       class="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                            class="px-6 py-2.5 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors">
+                        <span th:text="${isEdit ? 'Update Department' : 'Create Department'}">Create Department</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Info Card -->
+        <div class="mt-6 bg-blue-50 rounded-xl p-6 border border-blue-200">
+            <div class="flex">
+                <svg class="w-6 h-6 text-blue-600 mr-3 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041.021.21.006.536.006.975 0a6 6 0 01-1.382 1.062 6 6 0 01-3.86-1.072 6 6 0 01-1.714-1.231A6 6 0 015.25 12a6 6 0 011.062-1.062 6 6 0 011.062-1.062 6 6 0 013.86 1.072 6 6 0 011.714 1.231A6 6 0 0118.75 12a6 6 0 01-1.062 1.062 6 6 0 01-1.062 1.062zM12 6a6 6 0 016 6v0a6 6 0 01-6 6 6 6 0 01-6-6v0a6 6 0 016-6z" />
+                </svg>
+                <div>
+                    <h3 class="text-sm font-semibold text-blue-900">About Department Hierarchy</h3>
+                    <p class="text-sm text-blue-800 mt-1">
+                        Departments can have parent-child relationships to represent your organizational structure.
+                        For example: Universitas → Fakultas Teknik → Department IT.
+                    </p>
+                    <ul class="text-sm text-blue-800 mt-2 space-y-1">
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Root departments have no parent (top level)
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Child departments inherit from parent for approval workflow
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Each department can have one head of department
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Show/hide kodeProdi field based on isProdi checkbox
+    const isProdiCheckbox = document.getElementById('isProdi');
+    const kodeProdiWrapper = document.getElementById('kodeProdiWrapper');
+
+    function toggleKodeProdi() {
+        if (isProdiCheckbox && kodeProdiWrapper) {
+            if (isProdiCheckbox.checked) {
+                kodeProdiWrapper.classList.remove('opacity-50', 'pointer-events-none');
+            } else {
+                kodeProdiWrapper.classList.add('opacity-50', 'pointer-events-none');
+            }
+        }
+    }
+
+    if (isProdiCheckbox) {
+        isProdiCheckbox.addEventListener('change', toggleKodeProdi);
+        toggleKodeProdi(); // Initial state
+    }
+</script>
+
+</html>

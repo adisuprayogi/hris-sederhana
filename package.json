@@ -1,0 +1,24 @@
+{
+  "scripts": {
+    "dev:css": "cross-env NODE_ENV=development postcss ./src/main/frontend/main.css -o src/main/resources/static/dist/css/main.css --watch",
+    "dev:js": "cross-env NODE_ENV=development esbuild ./src/main/frontend/main.js --bundle --outfile=./src/main/resources/static/dist/js/main.js --watch",
+    "dev": "cross-env NODE_ENV=development concurrently \"npm run dev:css\" \"npm run dev:js\"",
+    "build:css": "postcss ./src/main/frontend/main.css -o src/main/resources/static/dist/css/main.css",
+    "build:js": "esbuild ./src/main/frontend/main.js --bundle --outfile=./src/main/resources/static/dist/js/main.js --minify",
+    "build": "cross-env NODE_ENV=production concurrently \"npm run build:css\" \"npm run build:js\""
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.10",
+    "alpinejs": "^3.15.0",
+    "autoprefixer": "^10.4.23",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "cssnano": "^6.1.2",
+    "esbuild": "^0.25.10",
+    "postcss": "^8.5.6",
+    "postcss-cli": "^11.0.1",
+    "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.6.14",
+    "tailwindcss": "^3.4.19"
+  }
+}

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Role - HRIS Sederhana</title>
+
+    <!-- Tailwind CSS (Local Build) -->
+    <link rel="stylesheet" th:href="@{/dist/css/main.css(v='1.0.5')}">
+
+    <!-- Alpine.js (Local Build) -->
+    <script defer th:src="@{/dist/js/main.js}"></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-100 via-blue-50 to-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <!-- Background Decorations -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+        <div class="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+        <div class="absolute top-1/2 left-1/2 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+    </div>
+
+    <div class="relative w-full max-w-4xl">
+        <!-- Logo & Title -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl shadow-xl shadow-blue-500/30 mb-6 hover:scale-105 transition-transform">
+                <svg class="w-10 h-10 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205l3 1m1.5.5l-1.5-.5M6.75 7.364V3h-3v18m3-13.636l10.5-3.819" />
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-700 to-blue-900 bg-clip-text text-transparent mb-2">HRIS Sederhana</h1>
+            <p class="text-slate-600">Choose your role to continue</p>
+        </div>
+
+        <!-- User Info Card with Glassmorphism -->
+        <div class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-blue-900/10 border border-white/20 p-6 mb-8">
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                        <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                        </svg>
+                    </div>
+                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></span>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm text-slate-500">Logged in as</p>
+                    <p class="text-lg font-bold text-slate-900" th:text="${user != null ? user.fullName : 'User'}">User</p>
+                    <p class="text-sm text-slate-600" th:text="${user != null ? user.email : 'user@hris.local'}">user@hris.local</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role Selection Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <!-- Admin Role -->
+            <th:block th:each="role : ${roles}">
+                <a th:if="${role.name() == 'ADMIN'}"
+                   th:href="@{/auth/confirm-role(role='ADMIN')}"
+                   class="group relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-lg shadow-blue-900/5 border border-white/20 p-6 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300">
+                    <div class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="relative">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform">
+                                <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3 6l3-3m0 0l-3-3m3 3H2.25" />
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-bold text-slate-900 group-hover:text-blue-700 transition-colors">Administrator</h3>
+                                <p class="text-sm text-slate-600">Full system access and control</p>
+                            </div>
+                            <svg class="w-6 h-6 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                            </svg>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- HR Role -->
+                <a th:if="${role.name() == 'HR'}"
+                   th:href="@{/auth/confirm-role(role='HR')}"
+                   class="group relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-lg shadow-emerald-900/5 border border-white/20 p-6 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all duration-300">
+                    <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="relative">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform">
+                                <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">HR Staff</h3>
+                                <p class="text-sm text-slate-600">Employee and payroll management</p>
+                            </div>
+                            <svg class="w-6 h-6 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                            </svg>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Employee Role -->
+                <a th:if="${role.name() == 'EMPLOYEE'}"
+                   th:href="@{/auth/confirm-role(role='EMPLOYEE')}"
+                   class="group relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-lg shadow-amber-900/5 border border-white/20 p-6 hover:shadow-xl hover:shadow-amber-500/10 hover:-translate-y-1 transition-all duration-300">
+                    <div class="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="relative">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform">
+                                <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-bold text-slate-900 group-hover:text-amber-700 transition-colors">Employee</h3>
+                                <p class="text-sm text-slate-600">Personal attendance and leave</p>
+                            </div>
+                            <svg class="w-6 h-6 text-slate-400 group-hover:text-amber-600 group-hover:translate-x-1 transition-all" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                            </svg>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Lecturer Role -->
+                <a th:if="${role.name() == 'DOSEN'}"
+                   th:href="@{/auth/confirm-role(role='DOSEN')}"
+                   class="group relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-lg shadow-purple-900/5 border border-white/20 p-6 hover:shadow-xl hover:shadow-purple-500/10 hover:-translate-y-1 transition-all duration-300">
+                    <div class="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="relative">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-purple-500/30 group-hover:scale-110 transition-transform">
+                                <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-bold text-slate-900 group-hover:text-purple-700 transition-colors">Lecturer</h3>
+                                <p class="text-sm text-slate-600">Teaching and academic activities</p>
+                            </div>
+                            <svg class="w-6 h-6 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                            </svg>
+                        </div>
+                    </div>
+                </a>
+            </th:block>
+        </div>
+
+        <!-- Logout -->
+        <div class="mt-8 text-center">
+            <a th:href="@{/auth/logout}" class="inline-flex items-center text-slate-600 hover:text-slate-800 text-sm font-medium transition-colors group">
+                <svg class="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l-3-3m0 0l-3 3m3-3H12" />
+                </svg>
+                Not you? Sign out
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

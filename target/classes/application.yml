@@ -1,0 +1,95 @@
+spring:
+  application:
+    name: hris-sederhana
+
+  # Database Configuration
+  datasource:
+    url: jdbc:mysql://localhost:3306/hris_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Jakarta&allowPublicKeyRetrieval=true
+    username: root
+    password: 12345678
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # JPA/Hibernate Configuration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+    open-in-view: false
+
+  # Flyway Configuration
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+  # File Upload Configuration
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 2MB
+      max-request-size: 2MB
+      file-size-threshold: 2KB
+
+  # Thymeleaf Configuration
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    cache: false
+
+  # MVC Configuration
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+
+# Server Configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /
+    session:
+      timeout: 30m
+      cookie:
+        name: HRIS_SESSION
+        http-only: true
+        secure: false
+        same-site: lax
+
+# File Upload Directory
+app:
+  upload:
+    dir: ./uploads
+  # Session configuration
+  session:
+    timeout-minutes: 30
+
+# Logging
+logging:
+  level:
+    com.hris: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/hris.log
+
+# Management endpoints (for health check, etc.)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized

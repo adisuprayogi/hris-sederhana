@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="space-y-6">
+        <!-- Page Header -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="flex-1">
+                    <h1 class="text-2xl font-bold text-gray-900">Departments</h1>
+                    <p class="text-sm text-gray-500 mt-1">Manage organizational structure and departments</p>
+                </div>
+                <a th:href="@{/departments/create}"
+                   class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 border border-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-all">
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Add Department
+                </a>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div th:if="${success}" class="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
+            <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-sm text-green-800" th:text="${success}">Success message here</p>
+        </div>
+
+        <div th:if="${error}" class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            <p class="text-sm text-red-800" th:text="${error}">Error message here</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Total Departments -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-gray-700">Total Departments</h3>
+                    <button class="p-1 hover:bg-gray-100 rounded-lg transition-colors">
+                        <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-bold text-gray-900" th:text="${totalItems}">0</span>
+                    <span class="text-xs text-gray-500">departments</span>
+                </div>
+            </div>
+
+            <!-- Root Departments -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-gray-700">Root Departments</h3>
+                    <button class="p-1 hover:bg-gray-100 rounded-lg transition-colors">
+                        <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-bold text-gray-900" th:text="${rootCount}">0</span>
+                    <span class="text-xs text-gray-500">top-level</span>
+                </div>
+            </div>
+
+            <!-- Study Programs -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-gray-700">Study Programs</h3>
+                    <span class="inline-flex items-center gap-1 text-xs font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
+                        <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                        </svg>
+                        Prodi
+                    </span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-bold text-gray-900" th:text="${prodiCount}">0</span>
+                    <span class="text-xs text-gray-500">programs</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters & List Section -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <!-- Filters -->
+            <div class="p-5 border-b border-gray-200">
+                <form th:action="@{/departments}" method="get" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <!-- Search -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Search</label>
+                            <div class="relative">
+                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                                </svg>
+                                <input type="text"
+                                       name="search"
+                                       th:value="${search}"
+                                       placeholder="Search by name or description..."
+                                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Parent Department -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Parent Department</label>
+                            <select name="parentId"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                <option value="">All Departments</option>
+                                <option th:each="dept : ${allDepartments}"
+                                        th:value="${dept.id}"
+                                        th:text="${dept.name}"
+                                        th:selected="${parentId != null && parentId == dept.id}">Department Name</option>
+                            </select>
+                        </div>
+
+                        <!-- Is Prodi -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Type</label>
+                            <select name="isProdi"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                <option value="">All Types</option>
+                                <option value="true" th:selected="${isProdi != null && isProdi}">Study Program Only</option>
+                                <option value="false" th:selected="${isProdi != null && !isProdi}">Department Only</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Filter Actions -->
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-500">
+                            Showing <span class="font-medium text-gray-900" th:text="${departments.size()}">0</span> of <span class="font-medium text-gray-900" th:text="${totalItems}">0</span> departments
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <a th:href="@{/departments}" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                                Clear Filters
+                            </a>
+                            <button type="submit"
+                                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 border border-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-all">
+                                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                                </svg>
+                                Apply Filters
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Departments List -->
+            <div class="overflow-x-auto">
+                <!-- Empty State -->
+                <div th:if="${departments.isEmpty()}" class="text-center py-12">
+                    <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h6m-9 0h3m3 0h3m-3 6h.75M8.25 21h1.875a2.625 2.625 0 001.875-6.75h-5.25a.75.75 0 00-.75.75v3.375c0 .621.504 1.125 1.125 1.125zM15.75 21h1.875a2.625 2.625 0 001.875-6.75h-5.25a.75.75 0 00-.75.75v3.375c0 .621.504 1.125 1.125 1.125z" />
+                    </svg>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No departments found</h3>
+                    <p class="text-sm text-gray-500 mb-4" th:text="${search != null || parentId != null || isProdi != null ? 'Try adjusting your filters' : 'Get started by creating your first department'}">
+                        No departments found matching your criteria
+                    </p>
+                    <a th:href="@{/departments/create}"
+                       class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 border border-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-all">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        Create Department
+                    </a>
+                </div>
+
+                <!-- Table -->
+                <table th:if="${!departments.isEmpty()}" class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Department</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Parent</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Head</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
+                            <th class="px-5 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr th:each="dept : ${departments}" class="hover:bg-gray-50 transition-colors">
+                            <td class="px-5 py-4">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-5 h-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                                        </svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <h3 class="text-sm font-semibold text-gray-900 truncate" th:text="${dept.name}">Department Name</h3>
+                                            <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded"
+                                                  th:if="${dept.isProdi}">Prodi</span>
+                                        </div>
+                                        <p class="text-xs text-gray-500 truncate mt-0.5" th:text="${dept.description}">Description</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-5 py-4">
+                                <span class="text-sm text-gray-600" th:if="${dept.parent != null}" th:text="${dept.parent.name}">Parent Name</span>
+                                <span class="text-sm text-gray-400" th:if="${dept.parent == null}">—</span>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="flex items-center gap-2" th:if="${dept.head != null}">
+                                    <div class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">
+                                        <svg class="w-3.5 h-3.5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm text-gray-600" th:text="${dept.head.fullName}">Head Name</span>
+                                </div>
+                                <span class="text-sm text-gray-400" th:if="${dept.head == null}">Not assigned</span>
+                            </td>
+                            <td class="px-5 py-4">
+                                <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full"
+                                      th:classappend="${dept.isProdi ? 'text-purple-600 bg-purple-50' : 'text-gray-600 bg-gray-50'}">
+                                    <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                                         th:if="${dept.isProdi}">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                                    </svg>
+                                    <span th:text="${dept.isProdi} ? 'Study Program' : 'Department'">Department</span>
+                                </span>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="flex items-center justify-end gap-1">
+                                    <a th:href="@{/departments/{id}(id=${dept.id})}"
+                                       class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                       title="View">
+                                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.234 7.51 7.364 4.5 12 4.5c4.638 0 8.766 3.01 9.965 7.183a1.012 1.012 0 010 .639c-.247.866-.805 1.67-1.624 2.244C19.266 16.157 16.004 17.5 12 17.5s-7.266-1.343-8.341-2.934c-.819-.573-1.377-1.378-1.624-2.244zM15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                                        </svg>
+                                    </a>
+                                    <a th:href="@{/departments/{id}/edit(id=${dept.id})}"
+                                       class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                       title="Edit">
+                                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897l16.509-16.509z" />
+                                        </svg>
+                                    </a>
+                                    <button class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors delete-btn"
+                                            th:data-dept-id="${dept.id}"
+                                            th:data-dept-name="${dept.name}"
+                                            onclick="confirmDelete(this)"
+                                            title="Delete">
+                                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 01-7.5 0" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div th:if="${totalPages > 0}" class="px-5 py-4 border-t border-gray-200 flex items-center justify-between">
+                <!-- Info -->
+                <div class="text-sm text-gray-600">
+                    Showing
+                    <span class="font-medium text-gray-900" th:text="${currentPage * pageSize + 1}">1</span>
+                    to
+                    <span class="font-medium text-gray-900" th:text="${(currentPage + 1) * pageSize < totalItems ? (currentPage + 1) * pageSize : totalItems}">10</span>
+                    of <span class="font-medium text-gray-900" th:text="${totalItems}">0</span> results
+                </div>
+
+                <!-- Pagination Buttons -->
+                <div class="flex items-center gap-2">
+                    <!-- Previous -->
+                    <a th:if="${currentPage > 0}"
+                       th:href="@{/departments(page=${currentPage - 1}, search=${search}, parentId=${parentId}, isProdi=${isProdi}, size=${pageSize})}"
+                       class="inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                        </svg>
+                        Previous
+                    </a>
+                    <button th:if="${currentPage == 0}"
+                            disabled
+                            class="inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                        </svg>
+                        Previous
+                    </button>
+
+                    <!-- Page Numbers -->
+                    <div class="hidden md:flex items-center gap-1">
+                        <th:block th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}">
+                            <a th:if="${pageNum != currentPage}"
+                               th:href="@{/departments(page=${pageNum}, search=${search}, parentId=${parentId}, isProdi=${isProdi}, size=${pageSize})}"
+                               class="min-w-10 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                               th:text="${pageNum + 1}">1</a>
+                            <span th:if="${pageNum == currentPage}"
+                                  class="min-w-10 px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg"
+                                  th:text="${pageNum + 1}">1</span>
+                        </th:block>
+                    </div>
+
+                    <!-- Next -->
+                    <a th:if="${currentPage < totalPages - 1}"
+                       th:href="@{/departments(page=${currentPage + 1}, search=${search}, parentId=${parentId}, isProdi=${isProdi}, size=${pageSize})}"
+                       class="inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        Next
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </a>
+                    <button th:if="${currentPage >= totalPages - 1}"
+                            disabled
+                            class="inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed">
+                        Next
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-gray-900/50 hidden items-center justify-center z-[9999] p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <div class="flex items-start gap-4 mb-4">
+                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-gray-900">Hapus Department</h3>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Apakah Anda yakin ingin menghapus <strong id="deleteDepartmentName" class="text-gray-900">department ini</strong>?
+                    </p>
+                </div>
+            </div>
+            <form id="deleteForm" method="post" class="flex justify-end gap-3">
+                <button type="button" onclick="closeDeleteModal()"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Batal
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
+                    Hapus
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function confirmDelete(button) {
+            const id = button.dataset.deptId;
+            const name = button.dataset.deptName;
+            document.getElementById('deleteDepartmentName').textContent = name;
+            document.getElementById('deleteForm').action = '/departments/' + id + '/delete';
+            const modal = document.getElementById('deleteModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            console.log('Modal opened for department:', id, name);
+        }
+
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            console.log('Modal closed');
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeDeleteModal();
+            }
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
+    </script>
+</div>
+
+</html>
