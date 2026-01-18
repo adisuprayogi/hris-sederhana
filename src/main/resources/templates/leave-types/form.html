@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="space-y-6">
+        <!-- Page Header -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900" th:text="${edit ? 'Edit Jenis Cuti' : 'Tambah Jenis Cuti'}">Tambah Jenis Cuti</h1>
+                    <p class="text-sm text-gray-500 mt-1" th:text="${edit ? 'Edit pengaturan jenis cuti' : 'Buat pengaturan jenis cuti baru'}">Edit pengaturan jenis cuti</p>
+                </div>
+                <a th:href="@{/leave-types(year=${leaveTypeForm.year})}"
+                   class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    Kembali
+                </a>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div th:if="${error}" class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            <p class="text-sm text-red-800" th:text="${error}">Error message here</p>
+        </div>
+
+        <!-- Form -->
+        <form th:action="${edit ? '/leave-types/update/' + leaveTypeForm.id : '/leave-types/save'}"
+              th:object="${leaveTypeForm}" method="post" class="bg-white rounded-xl shadow-sm border border-gray-200">
+
+            <!-- Informasi Umum -->
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Informasi Umum</h2>
+            </div>
+
+            <div class="p-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Tahun -->
+                    <div>
+                        <label for="year" class="block text-sm font-medium text-gray-700 mb-1">Tahun *</label>
+                        <select id="year" th:field="*{year}" required
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                            <option value="2026">2026</option>
+                            <option value="2027">2027</option>
+                            <option value="2028">2028</option>
+                        </select>
+                    </div>
+
+                    <!-- Kode Cuti -->
+                    <div>
+                        <label for="code" class="block text-sm font-medium text-gray-700 mb-1">Kode Cuti *</label>
+                        <input type="text" id="code" th:field="*{code}" maxlength="10" required
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all uppercase"
+                               placeholder="AL, SK, MT, dll">
+                        <p class="mt-1 text-xs text-gray-500">Maksimal 10 karakter, mis: AL, SK, MT</p>
+                    </div>
+
+                    <!-- Nama Cuti -->
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nama Cuti *</label>
+                        <input type="text" id="name" th:field="*{name}" required
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Cuti Tahunan">
+                    </div>
+                </div>
+
+                <!-- Deskripsi -->
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
+                    <textarea id="description" th:field="*{description}" rows="3"
+                              class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                              placeholder="Deskripsi singkat jenis cuti ini..."></textarea>
+                </div>
+            </div>
+
+            <!-- Konfigurasi Kuota -->
+            <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <h2 class="text-lg font-semibold text-gray-900">Konfigurasi Kuota</h2>
+            </div>
+
+            <div class="p-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Jenis Cuti -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Cuti *</label>
+                        <div class="flex items-center gap-6">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" th:field="*{leaveType}" value="QUOTA" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Berkuota</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" th:field="*{leaveType}" value="NO_QUOTA" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Tidak Berkuota</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Jatah per Tahun (hanya jika QUOTA) -->
+                    <div id="quotaField">
+                        <label for="annualQuota" class="block text-sm font-medium text-gray-700 mb-1">Jatah per Tahun (hari)</label>
+                        <input type="number" id="annualQuota" th:field="*{annualQuota}" min="0" max="365"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pengaturan Carry Forward -->
+            <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+                    </svg>
+                    <h2 class="text-lg font-semibold text-gray-900">Pengaturan Carry Forward</h2>
+                </div>
+            </div>
+
+            <div class="p-6 space-y-6">
+                <!-- Izinkan Carry Forward -->
+                <div>
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" id="allowCarryForward" th:field="*{allowCarryForward}" class="w-5 h-5 text-blue-600 focus:ring-blue-500 rounded">
+                        <span class="ml-3 text-sm font-medium text-gray-700">Izinkan Carry Forward</span>
+                    </label>
+                    <p class="mt-1 ml-8 text-xs text-gray-500">Sisa cuti tahun ini bisa dipakai tahun depan sampai tanggal tertentu</p>
+                </div>
+
+                <!-- Carry Forward Details (hanya jika allowCarryForward = true) -->
+                <div id="carryForwardSettings" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 pl-8 border-l-4 border-blue-200">
+                    <div>
+                        <label for="maxCarryForwardDays" class="block text-sm font-medium text-gray-700 mb-1">Maksimal Carry Forward</label>
+                        <input type="number" id="maxCarryForwardDays" th:field="*{maxCarryForwardDays}" min="0" max="365"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        <p class="mt-1 text-xs text-gray-500">Hari</p>
+                    </div>
+
+                    <div>
+                        <label for="carryForwardExpiryDay" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Expired</label>
+                        <input type="number" id="carryForwardExpiryDay" th:field="*{carryForwardExpiryDay}" min="1" max="31"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        <p class="mt-1 text-xs text-gray-500">Tanggal (1-31)</p>
+                    </div>
+
+                    <div>
+                        <label for="carryForwardExpiryMonth" class="block text-sm font-medium text-gray-700 mb-1">Bulan Expired</label>
+                        <select id="carryForwardExpiryMonth" th:field="*{carryForwardExpiryMonth}"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <option value="1">Januari</option>
+                            <option value="2">Februari</option>
+                            <option value="3">Maret</option>
+                            <option value="4">April</option>
+                            <option value="5">Mei</option>
+                            <option value="6">Juni</option>
+                            <option value="7">Juli</option>
+                            <option value="8">Agustus</option>
+                            <option value="9">September</option>
+                            <option value="10">Oktober</option>
+                            <option value="11">November</option>
+                            <option value="12">Desember</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kriteria Karyawan -->
+            <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <h2 class="text-lg font-semibold text-gray-900">Kriteria Karyawan</h2>
+            </div>
+
+            <div class="p-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Masa Kerja Minimum -->
+                    <div>
+                        <label for="minYearsOfService" class="block text-sm font-medium text-gray-700 mb-1">Masa Kerja Minimum</label>
+                        <input type="number" id="minYearsOfService" th:field="*{minYearsOfService}" min="0" max="50"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        <p class="mt-1 text-xs text-gray-500">Tahun (0 = semua karyawan)</p>
+                    </div>
+
+                    <!-- Batasan Gender -->
+                    <div>
+                        <label for="genderRestriction" class="block text-sm font-medium text-gray-700 mb-1">Batasan Gender</label>
+                        <select id="genderRestriction" th:field="*{genderRestriction}"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <option th:each="gr : ${genderRestrictions}"
+                                    th:value="${gr}"
+                                    th:text="${gr.displayName}">Semua</option>
+                        </select>
+                    </div>
+
+                    <!-- Status -->
+                    <div>
+                        <label for="isActive" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select id="isActive" th:field="*{isActive}"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <option th:value="true" th:selected="${leaveTypeForm.isActive}">Aktif</option>
+                            <option th:value="false" th:selected="${!leaveTypeForm.isActive}">Non-Aktif</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Dibayar -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Cuti Dibayar?</label>
+                        <div class="flex items-center gap-6">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" th:field="*{isPaid}" value="true" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Ya</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" th:field="*{isPaid}" value="false" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Tidak</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Perlu Bukti -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Perlu Bukti?</label>
+                        <div class="flex items-center gap-6">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" th:field="*{requireProof}" value="true" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Ya (surat dokter, dll)</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" th:field="*{requireProof}" value="false" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Tidak</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deskripsi Bukti (hanya jika requireProof = true) -->
+                <div id="proofDescription" class="hidden">
+                    <label for="proofDescriptionText" class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Bukti yang Diperlukan</label>
+                    <input type="text" id="proofDescriptionText" th:field="*{proofDescription}"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                           placeholder="Surat dokter, surat nikah, dll">
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3">
+                <a th:href="@{/leave-types(year=${leaveTypeForm.year})}"
+                   class="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Batal
+                </a>
+                <button type="submit"
+                        class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/30">
+                    <span th:text="${edit ? 'Simpan Perubahan' : 'Simpan'}">Simpan</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const leaveTypeRadios = document.querySelectorAll('input[name="leaveType"]');
+        const quotaField = document.getElementById('quotaField');
+        const annualQuota = document.getElementById('annualQuota');
+
+        const allowCarryForward = document.getElementById('allowCarryForward');
+        const carryForwardSettings = document.getElementById('carryForwardSettings');
+
+        const requireProofRadios = document.querySelectorAll('input[name="requireProof"]');
+        const proofDescription = document.getElementById('proofDescription');
+
+        // Show/hide quota field based on leave type
+        function updateQuotaField() {
+            const selectedType = document.querySelector('input[name="leaveType"]:checked').value;
+            if (selectedType === 'QUOTA') {
+                quotaField.classList.remove('hidden');
+                annualQuota.required = true;
+            } else {
+                quotaField.classList.add('hidden');
+                annualQuota.required = false;
+                annualQuota.value = '';
+            }
+        }
+
+        // Show/hide carry forward settings
+        function updateCarryForwardSettings() {
+            if (allowCarryForward.checked) {
+                carryForwardSettings.classList.remove('hidden');
+                document.getElementById('maxCarryForwardDays').required = true;
+                document.getElementById('carryForwardExpiryDay').required = true;
+            } else {
+                carryForwardSettings.classList.add('hidden');
+                document.getElementById('maxCarryForwardDays').required = false;
+                document.getElementById('carryForwardExpiryDay').required = false;
+            }
+        }
+
+        // Show/hide proof description
+        function updateProofDescription() {
+            const selected = document.querySelector('input[name="requireProof"]:checked').value;
+            if (selected === 'true') {
+                proofDescription.classList.remove('hidden');
+            } else {
+                proofDescription.classList.add('hidden');
+            }
+        }
+
+        // Event listeners
+        leaveTypeRadios.forEach(radio => {
+            radio.addEventListener('change', updateQuotaField);
+        });
+
+        allowCarryForward.addEventListener('change', updateCarryForwardSettings);
+
+        requireProofRadios.forEach(radio => {
+            radio.addEventListener('change', updateProofDescription);
+        });
+
+        // Initial check
+        updateQuotaField();
+        updateCarryForwardSettings();
+        updateProofDescription();
+
+        // Uppercase code input
+        document.getElementById('code').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+    });
+</script>
+
+</html>

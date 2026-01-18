@@ -30,7 +30,7 @@ public class LecturerProfile extends AuditableEntity {
     // =====================================================
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "employee_id", nullable = false, unique = true)
+    @JoinColumn(name = "employee_id", nullable = true)
     private Employee employee;
 
     // =====================================================

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="space-y-6">
+        <!-- Page Header -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Edit Leave Balance</h1>
+                    <p class="text-sm text-gray-500 mt-1">Kelola saldo cuti untuk <span th:text="${employee.fullName}"></span></p>
+                </div>
+                <a th:href="@{/leave-settings(year=${balance.year})}"
+                   class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    Kembali
+                </a>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div th:if="${success}" class="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
+            <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-sm text-green-800" th:text="${success}">Success message here</p>
+        </div>
+
+        <div th:if="${error}" class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            <p class="text-sm text-red-800" th:text="${error}">Error message here</p>
+        </div>
+
+        <!-- Employee Info -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+                <div class="h-16 w-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-xl">
+                    <span th:text="${#strings.substring(employee.fullName, 0, 1)}">A</span>
+                </div>
+                <div class="ml-6">
+                    <h3 class="text-lg font-semibold text-gray-900" th:text="${employee.fullName}">Name</h3>
+                    <p class="text-sm text-gray-500">
+                        <span th:text="${employee.nik}">NIK</span> &bull;
+                        <span th:text="${employee.department?.name}">Department</span> &bull;
+                        <span th:text="${employee.position?.name}">Position</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Form -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Konfigurasi Leave Balance</h2>
+                <p class="text-xs text-gray-500 mt-0.5">Tahun <span th:text="${balance.year}"></span></p>
+            </div>
+
+            <form th:action="@{/leave-settings/save}" th:object="${balance}" method="post" class="p-6">
+                <input type="hidden" th:field="*{id}" />
+                <input type="hidden" name="employeeId" th:value="${employee.id}" />
+                <input type="hidden" name="year" th:value="${balance.year}" />
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Annual Quota -->
+                    <div>
+                        <label for="annualQuota" class="block text-sm font-medium text-gray-700 mb-1">Jatah Tahunan (hari)</label>
+                        <input type="number" step="1" min="0" max="30"
+                               id="annualQuota"
+                               th:field="*{annualQuota}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               required>
+                        <p class="mt-1 text-xs text-gray-500">Default: 12 hari/tahun (sesuai UU No. 13 Tahun 2003)</p>
+                    </div>
+
+                    <!-- Used -->
+                    <div>
+                        <label for="used" class="block text-sm font-medium text-gray-700 mb-1">Sudah Diambil (hari)</label>
+                        <input type="number" step="0.5" min="0"
+                               id="used"
+                               th:field="*{used}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               required>
+                    </div>
+
+                    <!-- Carried Forward -->
+                    <div>
+                        <label for="carriedForward" class="block text-sm font-medium text-gray-700 mb-1">Carry Forward (hari)</label>
+                        <input type="number" step="0.5" min="0"
+                               id="carriedForward"
+                               th:field="*{carriedForward}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        <p class="mt-1 text-xs text-gray-500">Sisa cuti dari tahun sebelumnya (max 6 hari)</p>
+                    </div>
+
+                    <!-- Expired Balance -->
+                    <div>
+                        <label for="expiredBalance" class="block text-sm font-medium text-gray-700 mb-1">Expired Balance (hari)</label>
+                        <input type="number" step="0.5" min="0"
+                               id="expiredBalance"
+                               th:field="*{expiredBalance}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        <p class="mt-1 text-xs text-gray-500">Cuti yang kadaluarsa</p>
+                    </div>
+
+                    <!-- Total Deduction -->
+                    <div>
+                        <label for="totalDeduction" class="block text-sm font-medium text-gray-700 mb-1">Total Deduction (hari)</label>
+                        <input type="number" step="0.5" min="0"
+                               id="totalDeduction"
+                               th:field="*{totalDeduction}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                    </div>
+
+                    <!-- Notes -->
+                    <div>
+                        <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
+                        <input type="text"
+                               id="notes"
+                               th:field="*{notes}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                               placeholder="Catatan tambahan...">
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                    <h4 class="text-sm font-semibold text-blue-900 mb-3">Ringkasan Balance</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <p class="text-xs text-blue-700">Total Available</p>
+                            <p class="text-lg font-bold text-blue-900" id="totalAvailable">12.0 hari</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-blue-700">Sisa Balance</p>
+                            <p class="text-lg font-bold text-blue-900" id="remainingBalance">12.0 hari</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-blue-700">Utilization</p>
+                            <p class="text-lg font-bold text-blue-900" id="utilization">0%</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-blue-700">Carry Forward Exp</p>
+                            <p class="text-sm text-blue-700" th:text="${balance.carriedForwardExpiryDate != null ? #temporals.format(balance.carriedForwardExpiryDate, 'dd MMM yyyy') : '-'}">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="mt-6 flex items-center justify-end gap-3">
+                    <a th:href="@{/leave-settings(year=${balance.year})}"
+                       class="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        Batal
+                    </a>
+                    <button type="submit"
+                            class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/30">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Update summary on form change
+    document.addEventListener('DOMContentLoaded', function() {
+        const annualQuota = document.getElementById('annualQuota');
+        const carriedForward = document.getElementById('carriedForward');
+        const used = document.getElementById('used');
+        const expiredBalance = document.getElementById('expiredBalance');
+
+        function updateSummary() {
+            const quota = parseFloat(annualQuota.value) || 0;
+            const carry = parseFloat(carriedForward.value) || 0;
+            const usedValue = parseFloat(used.value) || 0;
+            const expired = parseFloat(expiredBalance.value) || 0;
+
+            const totalAvailable = quota + carry;
+            const remaining = totalAvailable - usedValue;
+            const utilization = totalAvailable > 0 ? (usedValue / totalAvailable * 100).toFixed(1) : 0;
+
+            document.getElementById('totalAvailable').textContent = totalAvailable.toFixed(1) + ' hari';
+            document.getElementById('remainingBalance').textContent = remaining.toFixed(1) + ' hari';
+            document.getElementById('utilization').textContent = utilization + '%';
+        }
+
+        annualQuota.addEventListener('input', updateSummary);
+        carriedForward.addEventListener('input', updateSummary);
+        used.addEventListener('input', updateSummary);
+        expiredBalance.addEventListener('input', updateSummary);
+
+        // Initial calculation
+        updateSummary();
+    });
+</script>
+
+</html>

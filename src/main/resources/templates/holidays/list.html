@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="space-y-6">
+        <!-- Page Header -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Hari Libur</h1>
+                    <p class="text-sm text-gray-500 mt-1">Kelola hari libur nasional, perusahaan, dan cuti bersama</p>
+                </div>
+                <a th:href="@{/holidays/add}"
+                   class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Tambah Hari Libur
+                </a>
+            </div>
+        </div>
+
+        <!-- Success Message -->
+        <div th:if="${success}" class="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
+            <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-sm text-green-800" th:text="${success}">Success message here</p>
+        </div>
+
+        <!-- Error Message -->
+        <div th:if="${error}" class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            <p class="text-sm text-red-800" th:text="${error}">Error message here</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Total Holidays -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-blue-100 rounded-lg">
+                        <svg class="w-6 h-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Total Hari Libur</p>
+                        <p class="text-2xl font-bold text-gray-900" th:text="${stats.totalHolidays}">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- National Holidays -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-red-100 rounded-lg">
+                        <svg class="w-6 h-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Libur Nasional</p>
+                        <p class="text-2xl font-bold text-gray-900" th:text="${stats.nationalHolidays}">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company Holidays -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-purple-100 rounded-lg">
+                        <svg class="w-6 h-6 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3H21M5.25 3h9M3.75 3h1.5m12 0h1.5m-1.5 0v1.5m0 0V21" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Libur Perusahaan</p>
+                        <p class="text-2xl font-bold text-gray-900" th:text="${stats.companyHolidays}">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collective Leave -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-yellow-100 rounded-lg">
+                        <svg class="w-6 h-6 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1.001A3.75 3.75 0 0012 18z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Cuti Bersama</p>
+                        <p class="text-2xl font-bold text-gray-900" th:text="${stats.collectiveLeave}">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters & List Section -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <!-- Filters -->
+            <div class="p-5 border-b border-gray-200">
+                <form th:action="@{/holidays}" method="get" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Year Filter -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Tahun</label>
+                            <select name="year"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                <option value="">Semua Tahun</option>
+                                <option th:each="year : ${years}"
+                                        th:value="${year}"
+                                        th:text="${year}"
+                                        th:selected="${currentYear != null && currentYear == year}">2024</option>
+                            </select>
+                        </div>
+
+                        <!-- Type Filter -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Tipe Hari Libur</label>
+                            <select name="type"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                <option value="">Semua Tipe</option>
+                                <option th:each="type : ${holidayTypes}"
+                                        th:value="${type.name()}"
+                                        th:text="${type.displayName}"
+                                        th:selected="${currentType != null && currentType == type}">NATIONAL</option>
+                            </select>
+                        </div>
+
+                        <!-- Status Filter -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
+                            <select name="active"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                <option value="">Semua Status</option>
+                                <option value="true" th:selected="${activeOnly != null && activeOnly}">Aktif</option>
+                                <option value="false" th:selected="${activeOnly != null && !activeOnly}">Nonaktif</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Filter Actions -->
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-500">
+                            Showing <span class="font-medium text-gray-900" th:text="${holidays.size()}">0</span> holidays
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <a th:href="@{/holidays}" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                                Clear Filters
+                            </a>
+                            <button type="submit"
+                                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 border border-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-all">
+                                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                                </svg>
+                                Apply Filters
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Holidays Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tanggal</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Nama Hari Libur</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tipe</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Berulang</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr th:each="holiday : ${holidays}" class="hover:bg-gray-50 transition-colors">
+                            <!-- Date -->
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                                    </svg>
+                                    <span class="text-sm font-medium text-gray-900" th:text="${#temporals.format(holiday.date, 'dd MMM yyyy')}">01 Jan 2026</span>
+                                </div>
+                            </td>
+
+                            <!-- Name -->
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900" th:text="${holiday.name}">Tahun Baru Masehi</div>
+                                <div class="text-xs text-gray-500 mt-0.5" th:if="${holiday.description}" th:text="${holiday.description}">Description here</div>
+                            </td>
+
+                            <!-- Type Badge -->
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span th:if="${holiday.holidayType.name() == 'NATIONAL'}"
+                                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    Nasional
+                                </span>
+                                <span th:if="${holiday.holidayType.name() == 'COMPANY'}"
+                                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                    Perusahaan
+                                </span>
+                                <span th:if="${holiday.holidayType.name() == 'COLLECTIVE_LEAVE'}"
+                                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    Cuti Bersama
+                                </span>
+                            </td>
+
+                            <!-- Status -->
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span th:class="${holiday.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}"
+                                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
+                                    <span class="w-1.5 h-1.5 rounded-full mr-1.5"
+                                          th:class="${holiday.isActive ? 'bg-green-500' : 'bg-gray-500'}"></span>
+                                    <span th:text="${holiday.isActive ? 'Aktif' : 'Nonaktif'}">Aktif</span>
+                                </span>
+                            </td>
+
+                            <!-- Repeat -->
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span th:if="${holiday.repeatAnnually}"
+                                      class="inline-flex items-center gap-1 text-xs text-blue-600">
+                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                                    </svg>
+                                    Ya
+                                </span>
+                                <span th:unless="${holiday.repeatAnnually}" class="text-xs text-gray-400">Tidak</span>
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <!-- Toggle Status -->
+                                    <form th:action="@{/holidays/toggle/{id}(id=${holiday.id})}" method="post" class="inline">
+                                        <button type="submit"
+                                                class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                                title="Toggle Status">
+                                            <svg th:if="${holiday.isActive}" class="w-4 h-4 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                                            </svg>
+                                            <svg th:unless="${holiday.isActive}" class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                                            </svg>
+                                        </button>
+                                    </form>
+
+                                    <!-- Edit -->
+                                    <a th:href="@{/holidays/edit/{id}(id=${holiday.id})}"
+                                       class="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                                       title="Edit">
+                                        <svg class="w-4 h-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                        </svg>
+                                    </a>
+
+                                    <!-- Delete -->
+                                    <form th:action="@{/holidays/delete/{id}(id=${holiday.id})}" method="post" class="inline"
+                                          onsubmit="return confirm('Apakah Anda yakin ingin menghapus hari libur ini?');">
+                                        <button type="submit" class="p-2 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                                            <svg class="w-4 h-4 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Empty State -->
+                        <tr th:if="${#lists.isEmpty(holidays)}">
+                            <td colspan="6" class="px-6 py-12 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                                </svg>
+                                <p class="mt-2 text-sm text-gray-500">Belum ada data hari libur</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

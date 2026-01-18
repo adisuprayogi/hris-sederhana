@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="space-y-6">
+        <!-- Page Header -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="flex items-center gap-4">
+                <a th:href="@{/shift-patterns}" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                </a>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900" th:text="${edit} ? 'Edit Shift Pattern' : 'Add Shift Pattern'">Add Shift Pattern</h1>
+                    <p class="text-sm text-gray-500 mt-1" th:text="${edit} ? 'Update shift pattern with permissions' : 'Create new shift pattern with permission settings'">Create new shift pattern with permission settings</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div th:if="${error}" class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            <p class="text-sm text-red-800" th:text="${error}">Error message here</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <form th:action="${edit} ? @{/shift-patterns/update/{id}(id=${shiftPattern.id})} : @{/shift-patterns/save}"
+                  method="post" th:object="${shiftPattern}" class="p-6 space-y-6">
+                <!-- Basic Info Section -->
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900 mb-4">Basic Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Name -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Name <span class="text-red-500">*</span></label>
+                            <input type="text"
+                                   th:field="*{name}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                   placeholder="e.g., Shift Standard"
+                                   required>
+                        </div>
+
+                        <!-- Code -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Code <span class="text-red-500">*</span></label>
+                            <input type="text"
+                                   th:field="*{code}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                   placeholder="e.g., ST001"
+                                   required>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+                            <textarea th:field="*{description}"
+                                      rows="2"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                      placeholder="e.g., Standard shift dengan overtime dan WFH"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shift Package & Type Section -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-base font-semibold text-gray-900 mb-4">Shift Configuration</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Shift Package -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Shift Package <span class="text-red-500">*</span></label>
+                            <select th:field="*{shiftPackageId}"
+                                    required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                <option value="">Select Shift Package</option>
+                                <option th:each="sp : ${shiftPackages}"
+                                        th:value="${sp.id}"
+                                        th:text="${sp.name + ' (' + sp.code + ')'}"
+                                        th:selected="${shiftPattern.shiftPackageId != null && shiftPattern.shiftPackageId == sp.id}">Shift Standard 5 Hari (SP_STANDARD)</option>
+                            </select>
+                        </div>
+
+                        <!-- Shift Type -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Shift Type <span class="text-red-500">*</span></label>
+                            <select th:field="*{shiftType}"
+                                    required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                <option th:each="type : ${shiftTypes}"
+                                        th:value="${type}"
+                                        th:text="${type.displayName}"
+                                        th:selected="${shiftPattern.shiftType != null && shiftPattern.shiftType == type}">Fixed</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Flexible Time Settings (for FLEXIBLE type) -->
+                <div id="flexibleSettings" class="border-t border-gray-200 pt-6" th:style="${shiftPattern.shiftType != null && shiftPattern.shiftType.name() == 'FLEXIBLE'} ? '' : 'display: none;'">
+                    <h3 class="text-base font-semibold text-gray-900 mb-4">Flexible Time Settings</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <!-- Start Window Start -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Start Window Start</label>
+                            <input type="time"
+                                   th:field="*{flexibleStartWindowStart}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        </div>
+
+                        <!-- Start Window End -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Start Window End</label>
+                            <input type="time"
+                                   th:field="*{flexibleStartWindowEnd}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        </div>
+
+                        <!-- Required Hours -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Required Hours</label>
+                            <input type="number"
+                                   th:field="*{flexibleRequiredHours}"
+                                   step="0.5"
+                                   min="0"
+                                   max="24"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                   placeholder="8.00">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Permissions Section -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-base font-semibold text-gray-900 mb-4">Permission Settings</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <!-- Overtime Allowed -->
+                        <label class="flex items-center gap-3 p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                            <input type="checkbox" th:field="*{isOvertimeAllowed}" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                            <div>
+                                <span class="text-sm font-medium text-gray-900">Overtime Allowed</span>
+                                <p class="text-xs text-gray-500">Allow overtime for this pattern</p>
+                            </div>
+                        </label>
+
+                        <!-- WFH Allowed -->
+                        <label class="flex items-center gap-3 p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                            <input type="checkbox" th:field="*{isWfhAllowed}" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                            <div>
+                                <span class="text-sm font-medium text-gray-900">WFH Allowed</span>
+                                <p class="text-xs text-gray-500">Work from home enabled</p>
+                            </div>
+                        </label>
+
+                        <!-- Attendance Mandatory -->
+                        <label class="flex items-center gap-3 p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                            <input type="checkbox" th:field="*{isAttendanceMandatory}" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                            <div>
+                                <span class="text-sm font-medium text-gray-900">Attendance Mandatory</span>
+                                <p class="text-xs text-gray-500">Clock in/out required</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Holiday Override Section -->
+                <div class="border-t border-gray-200 pt-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <svg class="w-5 h-5 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 class="text-base font-semibold text-gray-900">Holiday Override Settings</h3>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-4">Shift ini tetap kerja pada hari libur berikut:</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Override National Holiday -->
+                        <label class="flex items-center gap-3 p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-amber-50 transition-colors">
+                            <input type="checkbox" th:field="*{overrideNationalHoliday}" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                            <div>
+                                <span class="text-sm font-medium text-gray-900">Libur Nasional</span>
+                                <p class="text-xs text-gray-500">Hari libur nasional</p>
+                            </div>
+                        </label>
+
+                        <!-- Override Company Holiday -->
+                        <label class="flex items-center gap-3 p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-amber-50 transition-colors">
+                            <input type="checkbox" th:field="*{overrideCompanyHoliday}" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                            <div>
+                                <span class="text-sm font-medium text-gray-900">Libur Perusahaan</span>
+                                <p class="text-xs text-gray-500">Hari libur perusahaan</p>
+                            </div>
+                        </label>
+
+                        <!-- Override Joint Leave -->
+                        <label class="flex items-center gap-3 p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-amber-50 transition-colors">
+                            <input type="checkbox" th:field="*{overrideJointLeave}" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                            <div>
+                                <span class="text-sm font-medium text-gray-900">Cuti Bersama</span>
+                                <p class="text-xs text-gray-500">Cuti bersama</p>
+                            </div>
+                        </label>
+
+                        <!-- Override Weekly Leave -->
+                        <label class="flex items-center gap-3 p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-amber-50 transition-colors">
+                            <input type="checkbox" th:field="*{overrideWeeklyLeave}" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                            <div>
+                                <span class="text-sm font-medium text-gray-900">Libur Mingguan</span>
+                                <p class="text-xs text-gray-500">Hari minggu/libur</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Tolerance Section -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-base font-semibold text-gray-900 mb-4">Tolerance Settings</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Late Tolerance -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Late Tolerance (minutes)</label>
+                            <input type="number"
+                                   th:field="*{lateToleranceMinutes}"
+                                   min="0"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                   placeholder="15">
+                            <p class="text-xs text-gray-500 mt-1">Minutes allowed before considered late</p>
+                        </div>
+
+                        <!-- Early Leave Tolerance -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Early Leave Tolerance (minutes)</label>
+                            <input type="number"
+                                   th:field="*{earlyLeaveToleranceMinutes}"
+                                   min="0"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                   placeholder="15">
+                            <p class="text-xs text-gray-500 mt-1">Minutes allowed before early leaving</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deduction Rules Section -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-base font-semibold text-gray-900 mb-4">Deduction Rules</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Late Deduction -->
+                        <div class="p-4 border border-gray-200 rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Late Deduction</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Per Minute</label>
+                                    <input type="number"
+                                           th:field="*{lateDeductionPerMinute}"
+                                           step="0.01"
+                                           min="0"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                           placeholder="0">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Max Amount</label>
+                                    <input type="number"
+                                           th:field="*{lateDeductionMaxAmount}"
+                                           step="0.01"
+                                           min="0"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                           placeholder="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Underwork Deduction -->
+                        <div class="p-4 border border-gray-200 rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Underwork Deduction</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Per Minute</label>
+                                    <input type="number"
+                                           th:field="*{underworkDeductionPerMinute}"
+                                           step="0.01"
+                                           min="0"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                           placeholder="0">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Max Amount</label>
+                                    <input type="number"
+                                           th:field="*{underworkDeductionMaxAmount}"
+                                           step="0.01"
+                                           min="0"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                           placeholder="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Display Section -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-base font-semibold text-gray-900 mb-4">Display Settings</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Display Order -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Display Order</label>
+                            <input type="number"
+                                   th:field="*{displayOrder}"
+                                   min="0"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                   placeholder="0">
+                        </div>
+
+                        <!-- Color -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Color</label>
+                            <div class="flex items-center gap-2">
+                                <input type="color"
+                                       th:field="*{color}"
+                                       class="w-12 h-10 border border-gray-300 rounded-lg cursor-pointer">
+                                <input type="text"
+                                       th:field="*{color}"
+                                       class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                       placeholder="#3B82F6">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="border-t border-gray-200 pt-6 flex items-center justify-end gap-3">
+                    <a th:href="@{/shift-patterns}"
+                       class="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                            class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                        <span th:text="${edit} ? 'Update Shift Pattern' : 'Save Shift Pattern'">Save Shift Pattern</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Show/hide flexible settings based on shift type
+        document.addEventListener('DOMContentLoaded', function() {
+            const shiftTypeSelect = document.getElementById('shiftType');
+            const flexibleSettings = document.getElementById('flexibleSettings');
+
+            function toggleFlexibleSettings() {
+                if (shiftTypeSelect && shiftTypeSelect.value === 'FLEXIBLE') {
+                    flexibleSettings.style.display = 'block';
+                } else {
+                    flexibleSettings.style.display = 'none';
+                }
+            }
+
+            if (shiftTypeSelect) {
+                shiftTypeSelect.addEventListener('change', toggleFlexibleSettings);
+                toggleFlexibleSettings(); // Initialize
+            }
+        });
+    </script>
+</div>
+
+</html>

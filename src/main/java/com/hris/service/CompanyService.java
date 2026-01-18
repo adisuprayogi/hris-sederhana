@@ -128,6 +128,21 @@ public class CompanyService {
         existing.setClockOutStart(company.getClockOutStart());
         existing.setClockOutEnd(company.getClockOutEnd());
 
+        // Payroll Configuration - Employee
+        existing.setEmployeePayrollPeriod(company.getEmployeePayrollPeriod());
+        existing.setEmployeePayrollCutoffDate(company.getEmployeePayrollCutoffDate());
+        existing.setEmployeePayrollPaymentDate(company.getEmployeePayrollPaymentDate());
+
+        // Payroll Configuration - Permanent Lecturer
+        existing.setPermanentLecturerPayrollPeriod(company.getPermanentLecturerPayrollPeriod());
+        existing.setPermanentLecturerPayrollCutoffDate(company.getPermanentLecturerPayrollCutoffDate());
+        existing.setPermanentLecturerPayrollPaymentDate(company.getPermanentLecturerPayrollPaymentDate());
+
+        // Payroll Configuration - Contract Lecturer
+        existing.setContractLecturerPayrollPeriod(company.getContractLecturerPayrollPeriod());
+        existing.setContractLecturerPayrollCutoffDate(company.getContractLecturerPayrollCutoffDate());
+        existing.setContractLecturerPayrollPaymentDate(company.getContractLecturerPayrollPaymentDate());
+
         // Note: logo_path and stamp_path are updated separately via upload methods
 
         Company saved = companyRepository.save(existing);

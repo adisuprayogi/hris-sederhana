@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="space-y-6">
+        <!-- Page Header -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="flex-1">
+                    <h1 class="text-2xl font-bold text-gray-900">Master Tarif Gaji Dosen</h1>
+                    <p class="text-sm text-gray-500 mt-1">Kelola tarif gaji dosen berdasarkan golongan akademik</p>
+                </div>
+                <a th:href="@{/lecturer-salary-rates/add}"
+                   class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 border border-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-all">
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Tambah Tarif
+                </a>
+            </div>
+        </div>
+
+        <!-- Success Message -->
+        <div th:if="${hasAllRanks}" class="bg-green-50 border border-green-200 rounded-xl p-4">
+            <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-sm text-green-800">Semua golongan akademik telah dikonfigurasi.</p>
+            </div>
+        </div>
+
+        <!-- Rates Table -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Golongan</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Gaji Pokok</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Tunj. Fungsional</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Tarif SKS Dosen LB</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Tarif SKS Lembur</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Tarif Bimbingan</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Tarif Menguji</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Honor Penelitian</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Honor Publikasi</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr th:each="rate : ${rates}">
+                            <td class="px-6 py-4">
+                                <span class="text-sm font-medium text-gray-900" th:text="${rate.academicRank.displayName}">-</span>
+                            </td>
+                            <td class="px-6 py-4 text-right text-sm text-gray-600"
+                                th:text="${#numbers.formatDecimal(rate.basicSalary, 1, 'COMMA', 2, 'POINT')}">0</td>
+                            <td class="px-6 py-4 text-right text-sm text-gray-600"
+                                th:text="${#numbers.formatDecimal(rate.functionalAllowance, 1, 'COMMA', 2, 'POINT')}">0</td>
+                            <td class="px-6 py-4 text-right text-sm text-gray-600">
+                                <div class="text-xs text-gray-500">Offline: <span class="text-gray-700" th:text="${#numbers.formatDecimal(rate.contractSksRateOffline, 1, 'COMMA', 0, 'POINT')}">0</span></div>
+                                <div class="text-xs text-gray-500">Online: <span class="text-gray-700" th:text="${#numbers.formatDecimal(rate.contractSksRateOnline, 1, 'COMMA', 0, 'POINT')}">0</span></div>
+                            </td>
+                            <td class="px-6 py-4 text-right text-sm text-gray-600">
+                                <div class="text-xs text-gray-500">Offline: <span class="text-gray-700" th:text="${#numbers.formatDecimal(rate.overtimeSksRateOffline, 1, 'COMMA', 0, 'POINT')}">0</span></div>
+                                <div class="text-xs text-gray-500">Online: <span class="text-gray-700" th:text="${#numbers.formatDecimal(rate.overtimeSksRateOnline, 1, 'COMMA', 0, 'POINT')}">0</span></div>
+                            </td>
+                            <td class="px-6 py-4 text-right text-sm text-gray-600">
+                                <div class="text-xs text-gray-500">Offline: <span class="text-gray-700" th:text="${#numbers.formatDecimal(rate.thesisGuidanceRateOffline, 1, 'COMMA', 0, 'POINT')}">0</span></div>
+                                <div class="text-xs text-gray-500">Online: <span class="text-gray-700" th:text="${#numbers.formatDecimal(rate.thesisGuidanceRateOnline, 1, 'COMMA', 0, 'POINT')}">0</span></div>
+                            </td>
+                            <td class="px-6 py-4 text-right text-sm text-gray-600">
+                                <div class="text-xs text-gray-500">Offline: <span class="text-gray-700" th:text="${#numbers.formatDecimal(rate.thesisExaminationRateOffline, 1, 'COMMA', 0, 'POINT')}">0</span></div>
+                                <div class="text-xs text-gray-500">Online: <span class="text-gray-700" th:text="${#numbers.formatDecimal(rate.thesisExaminationRateOnline, 1, 'COMMA', 0, 'POINT')}">0</span></div>
+                            </td>
+                            <td class="px-6 py-4 text-right text-sm text-gray-600"
+                                th:text="${#numbers.formatDecimal(rate.researchHonor, 1, 'COMMA', 0, 'POINT')}">0</td>
+                            <td class="px-6 py-4 text-right text-sm text-gray-600"
+                                th:text="${#numbers.formatDecimal(rate.publicationHonor, 1, 'COMMA', 0, 'POINT')}">0</td>
+                            <td class="px-6 py-4 text-center text-sm">
+                                <a th:href="@{/lecturer-salary-rates/edit/{id}(id=${rate.id})}"
+                                   class="text-blue-600 hover:text-blue-800 mr-3 font-medium">Edit</a>
+                                <form th:action="@{/lecturer-salary-rates/delete/{id}(id=${rate.id})}"
+                                      method="post" class="inline"
+                                      onsubmit="return confirm('Hapus tarif ini?')">
+                                    <button type="submit" class="text-red-600 hover:text-red-800 font-medium">Hapus</button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(rates)}">
+                            <td colspan="10" class="px-6 py-12 text-center">
+                                <div class="flex flex-col items-center">
+                                    <svg class="w-12 h-12 text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25m-17.25 0a1.125 1.125 0 00-1.125-1.125M3.375 7.5h1.5C5.496 7.5 6 6 6 5.25M4.875 7.5h.375m9-6h.375m-.375 0a1.125 1.125 0 00-1.125-1.125M9.75 6h1.5c.621 0 1.125.504 1.125 1.125M9.75 6h.375m-9 0h-.375m9 0h.375m-9 0c.621 0 1.125.504 1.125 1.125M12 5.25c.621 0 1.125.504 1.125 1.125M12 5.25h.375m-9 0H12" />
+                                    </svg>
+                                    <p class="text-gray-500 font-medium">Belum ada data tarif</p>
+                                    <p class="text-sm text-gray-400 mt-1">Silakan tambah tarif gaji dosen</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

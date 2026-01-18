@@ -151,6 +151,7 @@ public class LecturerService {
 
     /**
      * Soft delete lecturer profile
+     * Also sets employee_id to NULL to free up the unique constraint
      */
     @Transactional
     public void deleteLecturerProfile(Long id) {
@@ -161,10 +162,15 @@ public class LecturerService {
             throw new IllegalArgumentException("Profil dosen tidak ditemukan dengan ID: " + id);
         }
 
+        // Store employee_id for logging
+        Long employeeId = lecturerProfile.getEmployee() != null ? lecturerProfile.getEmployee().getId() : null;
+
+        // Soft delete and set employee to NULL to free up the unique constraint
         lecturerProfile.softDelete(null);
+        lecturerProfile.setEmployee(null);
         lecturerProfileRepository.save(lecturerProfile);
 
-        log.info("Lecturer profile deleted successfully: {}", id);
+        log.info("Lecturer profile deleted successfully: {} (was linked to employee: {})", id, employeeId);
     }
 
     // =====================================================

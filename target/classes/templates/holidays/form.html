@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.w3.org/1999/xhtml"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="space-y-6">
+        <!-- Page Header -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="flex items-center gap-4">
+                <a th:href="@{/holidays}" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                </a>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900" th:text="${edit} ? 'Edit Hari Libur' : 'Tambah Hari Libur'">Add Holiday</h1>
+                    <p class="text-sm text-gray-500 mt-1" th:text="${edit} ? 'Update informasi hari libur' : 'Tambah hari libur baru ke sistem'">Create new holiday in the system</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div th:if="${error}" class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            <p class="text-sm text-red-800" th:text="${error}">Error message here</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <form th:action="${edit} ? @{/holidays/update/{id}(id=${holiday.id})} : @{/holidays/save}"
+                  method="post" th:object="${holiday}" class="p-6 space-y-6">
+                <!-- Basic Info Section -->
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900 mb-4">Informasi Dasar</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Name -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Nama Hari Libur <span class="text-red-500">*</span></label>
+                            <input type="text"
+                                   th:field="*{name}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                   placeholder="e.g., Tahun Baru Masehi"
+                                   required>
+                        </div>
+
+                        <!-- Date -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Tanggal <span class="text-red-500">*</span></label>
+                            <input type="date"
+                                   th:field="*{date}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                   required>
+                        </div>
+
+                        <!-- Holiday Type -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Tipe Hari Libur <span class="text-red-500">*</span></label>
+                            <select th:field="*{holidayType}"
+                                    required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                <option value="">Pilih Tipe</option>
+                                <option th:each="type : ${holidayTypes}"
+                                        th:value="${type.name()}"
+                                        th:text="${type.displayName}">National</option>
+                            </select>
+                        </div>
+
+                        <!-- Year (auto-calculated) -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Tahun</label>
+                            <input type="number"
+                                   th:field="*{year}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                   placeholder="Otomatis dari tanggal">
+                            <p class="text-xs text-gray-500 mt-1">Akan otomatis diisi dari tanggal</p>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Deskripsi</label>
+                            <textarea th:field="*{description}"
+                                      rows="2"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                      placeholder="Deskripsi tambahan untuk hari libur"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Section -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-base font-semibold text-gray-900 mb-4">Pengaturan</h3>
+                    <div class="space-y-4">
+                        <!-- Is Active -->
+                        <label class="flex items-center gap-3 p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                            <input type="checkbox" th:field="*{isActive}" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                            <div>
+                                <span class="text-sm font-medium text-gray-900">Aktif</span>
+                                <p class="text-xs text-gray-500">Hari libur ini aktif dan akan ditampilkan di sistem</p>
+                            </div>
+                        </label>
+
+                        <!-- Repeat Annually -->
+                        <label class="flex items-center gap-3 p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                            <input type="checkbox" th:field="*{repeatAnnually}" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                            <div>
+                                <span class="text-sm font-medium text-gray-900">Berulang Setiap Tahun</span>
+                                <p class="text-xs text-gray-500">Hari libur ini akan berulang setiap tahun pada tanggal yang sama</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Type Descriptions -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-base font-semibold text-gray-900 mb-4">Informasi Tipe</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- National -->
+                        <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <div class="flex items-center gap-2 mb-2">
+                                <svg class="w-5 h-5 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                </svg>
+                                <span class="text-sm font-semibold text-red-900">Hari Libur Nasional</span>
+                            </div>
+                            <p class="text-xs text-red-700">Libur nasional berdasarkan kalender pemerintah Indonesia</p>
+                        </div>
+
+                        <!-- Company -->
+                        <div class="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                            <div class="flex items-center gap-2 mb-2">
+                                <svg class="w-5 h-5 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3H21M5.25 3h9M3.75 3h1.5m12 0h1.5m-1.5 0v1.5m0 0V21" />
+                                </svg>
+                                <span class="text-sm font-semibold text-purple-900">Hari Libur Perusahaan</span>
+                            </div>
+                            <p class="text-xs text-purple-700">Hari libur khusus yang ditetapkan oleh perusahaan</p>
+                        </div>
+
+                        <!-- Collective Leave -->
+                        <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <div class="flex items-center gap-2 mb-2">
+                                <svg class="w-5 h-5 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1.001A3.75 3.75 0 0012 18z" />
+                                </svg>
+                                <span class="text-sm font-semibold text-yellow-900">Cuti Bersama</span>
+                            </div>
+                            <p class="text-xs text-yellow-700">Cuti bersama yang ditetapkan perusahaan</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="border-t border-gray-200 pt-6 flex items-center justify-end gap-3">
+                    <a th:href="@{/holidays}"
+                       class="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        Batal
+                    </a>
+                    <button type="submit"
+                            class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                        <span th:text="${edit} ? 'Update Hari Libur' : 'Simpan Hari Libur'">Simpan</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Auto-fill year from date
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('date');
+            const yearInput = document.getElementById('year');
+
+            if (dateInput && yearInput) {
+                dateInput.addEventListener('change', function() {
+                    if (this.value) {
+                        const date = new Date(this.value);
+                        yearInput.value = date.getFullYear();
+                    }
+                });
+
+                // Initialize year if date is already set
+                if (dateInput.value) {
+                    const date = new Date(dateInput.value);
+                    yearInput.value = date.getFullYear();
+                }
+            }
+        });
+    </script>
+</div>
+
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="max-w-4xl mx-auto">
+        <div class="mb-6">
+            <a th:href="@{/lecturer-salary-rates}" class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900">
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                Kembali
+            </a>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-gray-900" th:text="${edit ? 'Edit Tarif Gaji Dosen' : 'Tambah Tarif Gaji Dosen'}">Tarif</h1>
+                <p class="text-sm text-gray-500 mt-1" th:if="${not edit}">Konfigurasi tarif untuk golongan akademik dosen</p>
+            </div>
+
+            <form th:action="@{__${edit ? '/lecturer-salary-rates/update/{id}(id=${rate.id})' : '/lecturer-salary-rates/save'}__}"
+                  method="post" th:object="${rate}" class="p-6 space-y-6">
+                <!-- Basic Information -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Informasi Dasar</h3>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Golongan Akademik</label>
+                            <select th:field="*{academicRank}" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Pilih Golongan</option>
+                                <option th:each="rank : ${academicRanks}"
+                                        th:value="${rank}"
+                                        th:text="${rank.displayName}"></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Basic Salary & Allowances -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Gaji Pokok & Tunjangan (Dosen Tetap)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Gaji Pokok</label>
+                            <input type="text" th:field="*{basicSalary}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Contoh: 5000000">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tunjangan Fungsional</label>
+                            <input type="text" th:field="*{functionalAllowance}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Contoh: 500000">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teaching Rates -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Tarif Mengajar (per SKS)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <h4 class="text-md font-medium text-blue-600">Dosen Tidak Tetap (Kontrak)</h4>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tarif SKS Offline</label>
+                                <input type="text" th:field="*{contractSksRateOffline}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Contoh: 150000">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tarif SKS Online</label>
+                                <input type="text" th:field="*{contractSksRateOnline}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Contoh: 100000">
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-md font-medium text-green-600">Dosen Tetap (Lembur di luar kewajiban)</h4>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tarif SKS Offline</label>
+                                <input type="text" th:field="*{overtimeSksRateOffline}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Contoh: 200000">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tarif SKS Online</label>
+                                <input type="text" th:field="*{overtimeSksRateOnline}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Contoh: 150000">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thesis Guidance & Examination Rates -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Tarif Bimbingan & Menguji Skripsi</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <h4 class="text-md font-medium text-blue-600">Bimbingan Skripsi (per mahasiswa)</h4>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tarif Offline</label>
+                                <input type="text" th:field="*{thesisGuidanceRateOffline}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Contoh: 500000">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tarif Online</label>
+                                <input type="text" th:field="*{thesisGuidanceRateOnline}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Contoh: 300000">
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-md font-medium text-green-600">Menguji Sidang (per sidang)</h4>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tarif Offline</label>
+                                <input type="text" th:field="*{thesisExaminationRateOffline}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Contoh: 300000">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tarif Online</label>
+                                <input type="text" th:field="*{thesisExaminationRateOnline}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Contoh: 200000">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Research & Publication Honors -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Honor Penelitian & Publikasi</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Honor Penelitian (per penelitian)</label>
+                            <input type="text" th:field="*{researchHonor}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Contoh: 2000000">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Honor Publikasi (dasar, dapat dikali berdasarkan tier)</label>
+                            <input type="text" th:field="*{publicationHonor}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Contoh: 1000000">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                    <a th:href="@{/lecturer-salary-rates}"
+                       class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+                        Batal
+                    </a>
+                    <button type="submit"
+                            class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        <span th:text="${edit ? 'Simpan Perubahan' : 'Simpan'}">Simpan</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+</html>

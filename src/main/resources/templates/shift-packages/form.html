@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="space-y-6">
+        <!-- Page Header -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="flex items-center gap-4">
+                <a th:href="@{/shift-packages}" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                </a>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900" th:text="${edit} ? 'Edit Shift Package' : 'Add Shift Package'">Add Shift Package</h1>
+                    <p class="text-sm text-gray-500 mt-1" th:text="${edit} ? 'Update shift package definition' : 'Create new shift package with working hours per day'">Create new shift package with working hours per day</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div th:if="${error}" class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            <p class="text-sm text-red-800" th:text="${error}">Error message here</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <form th:action="${edit} ? @{/shift-packages/update/{id}(id=${shiftPackage.id})} : @{/shift-packages/save}"
+                  method="post" th:object="${shiftPackage}" class="p-6 space-y-6">
+                <!-- Basic Info Section -->
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900 mb-4">Basic Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Name -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Name <span class="text-red-500">*</span></label>
+                            <input type="text"
+                                   th:field="*{name}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                   placeholder="e.g., Shift Standard 5 Hari"
+                                   required>
+                        </div>
+
+                        <!-- Code -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Code <span class="text-red-500">*</span></label>
+                            <input type="text"
+                                   th:field="*{code}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                   placeholder="e.g., SP_STANDARD"
+                                   required>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+                            <textarea th:field="*{description}"
+                                      rows="2"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                      placeholder="e.g., Senin-Jumat kerja, Sabtu-Minggu libur"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weekly Schedule Section -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-base font-semibold text-gray-900 mb-4">Weekly Schedule</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Day</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Working Hours</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Time</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <!-- Sunday -->
+                                <tr>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" id="sundayEnabled" th:checked="${shiftPackage.sundayWorkingHoursId != null}" onchange="toggleDay('sunday')" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                                            <span class="text-sm font-medium text-gray-900">Sunday</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <select id="sundayWorkingHoursId" name="sundayWorkingHoursId"
+                                                th:field="*{sundayWorkingHoursId}"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                            <option value="">OFF / Non-working</option>
+                                            <option th:each="wh : ${workingHoursList}"
+                                                    th:value="${wh.id}"
+                                                    th:text="${wh.name + ' (' + #temporals.format(wh.startTime, 'HH:mm') + ' - ' + #temporals.format(wh.endTime, 'HH:mm') + ')'}"
+                                                    th:selected="${shiftPackage.sundayWorkingHoursId != null && shiftPackage.sundayWorkingHoursId == wh.id}">Pagi 1 (08:00 - 16:00)</option>
+                                        </select>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-500" id="sundayTime"></td>
+                                </tr>
+                                <!-- Monday -->
+                                <tr>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" id="mondayEnabled" th:checked="${shiftPackage.mondayWorkingHoursId != null}" onchange="toggleDay('monday')" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                                            <span class="text-sm font-medium text-gray-900">Monday</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <select id="mondayWorkingHoursId" name="mondayWorkingHoursId"
+                                                th:field="*{mondayWorkingHoursId}"
+                                                required
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                            <option value="">OFF / Non-working</option>
+                                            <option th:each="wh : ${workingHoursList}"
+                                                    th:value="${wh.id}"
+                                                    th:text="${wh.name + ' (' + #temporals.format(wh.startTime, 'HH:mm') + ' - ' + #temporals.format(wh.endTime, 'HH:mm') + ')'}"
+                                                    th:selected="${shiftPackage.mondayWorkingHoursId != null && shiftPackage.mondayWorkingHoursId == wh.id}">Pagi 1 (08:00 - 16:00)</option>
+                                        </select>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-500" id="mondayTime"></td>
+                                </tr>
+                                <!-- Tuesday -->
+                                <tr>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" id="tuesdayEnabled" th:checked="${shiftPackage.tuesdayWorkingHoursId != null}" onchange="toggleDay('tuesday')" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                                            <span class="text-sm font-medium text-gray-900">Tuesday</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <select id="tuesdayWorkingHoursId" name="tuesdayWorkingHoursId"
+                                                th:field="*{tuesdayWorkingHoursId}"
+                                                required
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                            <option value="">OFF / Non-working</option>
+                                            <option th:each="wh : ${workingHoursList}"
+                                                    th:value="${wh.id}"
+                                                    th:text="${wh.name + ' (' + #temporals.format(wh.startTime, 'HH:mm') + ' - ' + #temporals.format(wh.endTime, 'HH:mm') + ')'}"
+                                                    th:selected="${shiftPackage.tuesdayWorkingHoursId != null && shiftPackage.tuesdayWorkingHoursId == wh.id}">Pagi 1 (08:00 - 16:00)</option>
+                                        </select>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-500" id="tuesdayTime"></td>
+                                </tr>
+                                <!-- Wednesday -->
+                                <tr>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" id="wednesdayEnabled" th:checked="${shiftPackage.wednesdayWorkingHoursId != null}" onchange="toggleDay('wednesday')" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                                            <span class="text-sm font-medium text-gray-900">Wednesday</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <select id="wednesdayWorkingHoursId" name="wednesdayWorkingHoursId"
+                                                th:field="*{wednesdayWorkingHoursId}"
+                                                required
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                            <option value="">OFF / Non-working</option>
+                                            <option th:each="wh : ${workingHoursList}"
+                                                    th:value="${wh.id}"
+                                                    th:text="${wh.name + ' (' + #temporals.format(wh.startTime, 'HH:mm') + ' - ' + #temporals.format(wh.endTime, 'HH:mm') + ')'}"
+                                                    th:selected="${shiftPackage.wednesdayWorkingHoursId != null && shiftPackage.wednesdayWorkingHoursId == wh.id}">Pagi 1 (08:00 - 16:00)</option>
+                                        </select>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-500" id="wednesdayTime"></td>
+                                </tr>
+                                <!-- Thursday -->
+                                <tr>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" id="thursdayEnabled" th:checked="${shiftPackage.thursdayWorkingHoursId != null}" onchange="toggleDay('thursday')" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                                            <span class="text-sm font-medium text-gray-900">Thursday</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <select id="thursdayWorkingHoursId" name="thursdayWorkingHoursId"
+                                                th:field="*{thursdayWorkingHoursId}"
+                                                required
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                            <option value="">OFF / Non-working</option>
+                                            <option th:each="wh : ${workingHoursList}"
+                                                    th:value="${wh.id}"
+                                                    th:text="${wh.name + ' (' + #temporals.format(wh.startTime, 'HH:mm') + ' - ' + #temporals.format(wh.endTime, 'HH:mm') + ')'}"
+                                                    th:selected="${shiftPackage.thursdayWorkingHoursId != null && shiftPackage.thursdayWorkingHoursId == wh.id}">Pagi 1 (08:00 - 16:00)</option>
+                                        </select>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-500" id="thursdayTime"></td>
+                                </tr>
+                                <!-- Friday -->
+                                <tr>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" id="fridayEnabled" th:checked="${shiftPackage.fridayWorkingHoursId != null}" onchange="toggleDay('friday')" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                                            <span class="text-sm font-medium text-gray-900">Friday</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <select id="fridayWorkingHoursId" name="fridayWorkingHoursId"
+                                                th:field="*{fridayWorkingHoursId}"
+                                                required
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                            <option value="">OFF / Non-working</option>
+                                            <option th:each="wh : ${workingHoursList}"
+                                                    th:value="${wh.id}"
+                                                    th:text="${wh.name + ' (' + #temporals.format(wh.startTime, 'HH:mm') + ' - ' + #temporals.format(wh.endTime, 'HH:mm') + ')'}"
+                                                    th:selected="${shiftPackage.fridayWorkingHoursId != null && shiftPackage.fridayWorkingHoursId == wh.id}">Pagi 1 (08:00 - 16:00)</option>
+                                        </select>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-500" id="fridayTime"></td>
+                                </tr>
+                                <!-- Saturday -->
+                                <tr>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" id="saturdayEnabled" th:checked="${shiftPackage.saturdayWorkingHoursId != null}" onchange="toggleDay('saturday')" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                                            <span class="text-sm font-medium text-gray-900">Saturday</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <select id="saturdayWorkingHoursId" name="saturdayWorkingHoursId"
+                                                th:field="*{saturdayWorkingHoursId}"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                            <option value="">OFF / Non-working</option>
+                                            <option th:each="wh : ${workingHoursList}"
+                                                    th:value="${wh.id}"
+                                                    th:text="${wh.name + ' (' + #temporals.format(wh.startTime, 'HH:mm') + ' - ' + #temporals.format(wh.endTime, 'HH:mm') + ')'}"
+                                                    th:selected="${shiftPackage.saturdayWorkingHoursId != null && shiftPackage.saturdayWorkingHoursId == wh.id}">Pagi 1 (08:00 - 16:00)</option>
+                                        </select>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-500" id="saturdayTime"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Display Section -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-base font-semibold text-gray-900 mb-4">Display Settings</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Display Order -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Display Order</label>
+                            <input type="number"
+                                   th:field="*{displayOrder}"
+                                   min="0"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                   placeholder="0">
+                        </div>
+
+                        <!-- Color -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Color</label>
+                            <div class="flex items-center gap-2">
+                                <input type="color"
+                                       th:field="*{color}"
+                                       class="w-12 h-10 border border-gray-300 rounded-lg cursor-pointer">
+                                <input type="text"
+                                       th:field="*{color}"
+                                       class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                       placeholder="#3B82F6">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="border-t border-gray-200 pt-6 flex items-center justify-end gap-3">
+                    <a th:href="@{/shift-packages}"
+                       class="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                            class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                        <span th:text="${edit} ? 'Update Shift Package' : 'Save Shift Package'">Save Shift Package</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const workingHoursData = /*[[${workingHoursList}]]*/ [];
+        const whMap = new Map(workingHoursData.map(wh => [wh.id.toString(), wh]));
+
+        function updateTimeDisplay(day) {
+            const select = document.getElementById(day + 'WorkingHoursId');
+            const timeDisplay = document.getElementById(day + 'Time');
+            const selectedWh = whMap.get(select.value);
+
+            if (selectedWh && selectedWh.startTime && selectedWh.endTime) {
+                timeDisplay.textContent = selectedWh.startTime + ' - ' + selectedWh.endTime;
+            } else {
+                timeDisplay.textContent = 'OFF';
+            }
+        }
+
+        function toggleDay(day) {
+            const checkbox = document.getElementById(day + 'Enabled');
+            const select = document.getElementById(day + 'WorkingHoursId');
+            const timeDisplay = document.getElementById(day + 'Time');
+
+            if (!checkbox.checked) {
+                select.value = '';
+                timeDisplay.textContent = 'OFF';
+            }
+        }
+
+        // Initialize time displays on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            days.forEach(day => {
+                updateTimeDisplay(day);
+
+                // Add change event listener to select
+                const select = document.getElementById(day + 'WorkingHoursId');
+                select.addEventListener('change', function() {
+                    updateTimeDisplay(day);
+                    // Update checkbox state when select changes
+                    const checkbox = document.getElementById(day + 'Enabled');
+                    checkbox.checked = select.value !== '';
+                });
+            });
+        });
+    </script>
+</div>
+
+</html>
