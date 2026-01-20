@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Employee Shift Service
@@ -97,6 +98,14 @@ public class EmployeeShiftService {
                 .map(EmployeeShiftSetting::getShiftPatternId)
                 .map(shiftPatternService::getShiftPatternById)
                 .orElse(null);
+    }
+
+    /**
+     * Get active shift setting for employee on specific date
+     */
+    @Transactional(readOnly = true)
+    public Optional<EmployeeShiftSetting> getActiveShiftSetting(Long employeeId, LocalDate date) {
+        return employeeShiftSettingRepository.findActiveByEmployeeAndDate(employeeId, date);
     }
 
     /**

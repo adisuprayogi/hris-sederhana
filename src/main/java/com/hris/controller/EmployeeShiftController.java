@@ -7,6 +7,7 @@ import com.hris.model.EmployeeShiftSchedule;
 import com.hris.model.EmployeeShiftSetting;
 import com.hris.model.ShiftPattern;
 import com.hris.model.WorkingHours;
+import com.hris.model.enums.EmployeeStatus;
 import com.hris.service.DepartmentService;
 import com.hris.service.EmployeeService;
 import com.hris.service.EmployeeShiftService;
@@ -206,25 +207,41 @@ public class EmployeeShiftController {
             @RequestParam(required = false) Long currentShiftPatternId) {
         log.info("Getting filtered employees - dept: {}, shift: {}", departmentId, currentShiftPatternId);
 
-        // Get employees based on filters
+        // Get only active employees based on filters
         List<Employee> employees;
         if (departmentId != null) {
-            employees = employeeService.getEmployeesByDepartment(departmentId);
+            employees = employeeService.getEmployeesByDepartment(departmentId).stream()
+                    .filter(e -> e.getStatus() == EmployeeStatus.ACTIVE)
+                    .toList();
         } else {
-            employees = employeeService.getAllEmployees();
+            employees = employeeService.getAllEmployees().stream()
+                    .filter(e -> e.getStatus() == EmployeeStatus.ACTIVE)
+                    .toList();
         }
 
         // Convert to summary DTO with current shift info
         return employees.stream()
                 .map(emp -> {
-                    ShiftPattern currentShift = employeeShiftService.getActiveShiftPattern(emp.getId());
+                    // Get the active shift setting (not just pattern)
+                    var activeSetting = employeeShiftService.getActiveShiftSetting(emp.getId(), LocalDate.now());
+                    ShiftPattern currentShift = null;
+                    String effectiveFrom = null;
+
+                    if (activeSetting.isPresent()) {
+                        EmployeeShiftSetting setting = activeSetting.get();
+                        currentShift = shiftPatternService.getShiftPatternById(setting.getShiftPatternId());
+                        effectiveFrom = setting.getEffectiveFrom() != null
+                            ? setting.getEffectiveFrom().toString()
+                            : null;
+                    }
+
                     // Filter by current shift if specified
                     if (currentShiftPatternId != null && currentShift != null) {
                         if (!currentShift.getId().equals(currentShiftPatternId)) {
                             return null;
                         }
                     }
-                    return new EmployeeShiftSummary(emp, currentShift);
+                    return new EmployeeShiftSummary(emp, currentShift, effectiveFrom);
                 })
                 .filter(item -> item != null)
                 .toList();
@@ -265,6 +282,7 @@ public class EmployeeShiftController {
     public static class EmployeeShiftSummary {
         private Long id;
         private String fullName;
+        private String email;
         private String departmentName;
         private String positionName;
         private String photoPath;
@@ -272,10 +290,12 @@ public class EmployeeShiftController {
         private String currentShiftPatternName;
         private String currentShiftPatternCode;
         private String currentShiftColor;
+        private String currentShiftEffectiveFrom;
 
-        public EmployeeShiftSummary(Employee employee, ShiftPattern currentShift) {
+        public EmployeeShiftSummary(Employee employee, ShiftPattern currentShift, String effectiveFrom) {
             this.id = employee.getId();
             this.fullName = employee.getFullName();
+            this.email = employee.getEmail();
             this.departmentName = employee.getDepartment() != null ? employee.getDepartment().getName() : null;
             this.positionName = employee.getPosition() != null ? employee.getPosition().getName() : null;
             this.photoPath = employee.getPhotoPath();
@@ -283,6 +303,7 @@ public class EmployeeShiftController {
             this.currentShiftPatternName = currentShift != null ? currentShift.getName() : null;
             this.currentShiftPatternCode = currentShift != null ? currentShift.getCode() : null;
             this.currentShiftColor = currentShift != null ? currentShift.getColor() : null;
+            this.currentShiftEffectiveFrom = effectiveFrom;
         }
     }
 }
