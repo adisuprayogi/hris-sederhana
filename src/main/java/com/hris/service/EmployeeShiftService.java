@@ -1,5 +1,7 @@
 package com.hris.service;
 
+import com.hris.controller.EmployeeShiftController.DayScheduleDTO;
+import com.hris.controller.EmployeeShiftController.WeekScheduleDTO;
 import com.hris.dto.BulkAssignShiftRequest;
 import com.hris.dto.BulkAssignShiftResult;
 import com.hris.model.*;
@@ -36,6 +38,7 @@ public class EmployeeShiftService {
     private final WorkingHoursService workingHoursService;
     private final EmployeeService employeeService;
     private final DepartmentService departmentService;
+    private final CompanyService companyService;
 
     // =====================================================
     // SHIFT ASSIGNMENT
@@ -205,6 +208,131 @@ public class EmployeeShiftService {
     @Transactional(readOnly = true)
     public List<EmployeeShiftSchedule> getOverrideSchedules(Long employeeId, LocalDate startDate, LocalDate endDate) {
         return employeeShiftScheduleRepository.findByEmployeeIdAndDateRange(employeeId, startDate, endDate);
+    }
+
+    // =====================================================
+    // SHIFT SCHEDULE FOR DETAIL MODAL
+    // =====================================================
+
+    /**
+     * Get shift schedule organized by weeks for detail modal
+     * Returns list of weeks with daily shift details
+     */
+    @Transactional(readOnly = true)
+    public List<WeekScheduleDTO> getShiftScheduleByWeeks(Long employeeId, LocalDate startDate, LocalDate endDate) {
+        log.info("Getting shift schedule for employee {} from {} to {}", employeeId, startDate, endDate);
+
+        List<WeekScheduleDTO> weeks = new ArrayList<>();
+        List<DayScheduleDTO> currentWeek = new ArrayList<>();
+        int weekNumber = 1;
+
+        LocalDate currentDate = startDate;
+        LocalDate weekStart = currentDate;
+
+        while (!currentDate.isAfter(endDate)) {
+            ShiftAssignmentResult assignment = getShiftAssignment(employeeId, currentDate);
+            DayScheduleDTO dayDTO = buildDayScheduleDTO(currentDate, assignment);
+            currentWeek.add(dayDTO);
+
+            // If it's Sunday or last day, create a week
+            if (currentDate.getDayOfWeek() == DayOfWeek.SUNDAY || currentDate.equals(endDate)) {
+                String dateRange = formatDateRange(weekStart, currentDate);
+                WeekScheduleDTO weekDTO = new WeekScheduleDTO(weekNumber, dateRange, new ArrayList<>(currentWeek));
+                weeks.add(weekDTO);
+                currentWeek.clear();
+                weekNumber++;
+                weekStart = currentDate.plusDays(1);
+            }
+
+            currentDate = currentDate.plusDays(1);
+        }
+
+        log.info("Generated {} weeks of schedule data", weeks.size());
+        return weeks;
+    }
+
+    private DayScheduleDTO buildDayScheduleDTO(LocalDate date, ShiftAssignmentResult assignment) {
+        String shiftName = null;
+        String shiftColor = null;
+        String workingHours = null;
+
+        // Get shift pattern info regardless of working day or off day
+        // This shows the assigned shift pattern even for weekly off days
+        if (assignment.getShiftPattern() != null) {
+            shiftName = assignment.getShiftPattern().getName();
+            shiftColor = assignment.getShiftPattern().getColor();
+        }
+
+        // Only show working hours if it's a working day
+        if (assignment.isWorkingDay() && assignment.getWorkingHours() != null) {
+            workingHours = formatWorkingHours(assignment.getWorkingHours());
+        }
+
+        // Determine if this is a weekly leave (non-working day based on company settings)
+        boolean isWeeklyLeave = false;
+        if (!assignment.isWorkingDay()) {
+            var company = companyService.getCompany();
+            if (company != null) {
+                DayOfWeek dayOfWeek = date.getDayOfWeek();
+                // Check if this day is NOT in the company's working days
+                isWeeklyLeave = !company.isWorkingDay(dayOfWeek);
+            }
+        }
+
+        log.info("Day {}: isWorkingDay={}, isWeeklyLeave={}, hasWorkingHours={}, shiftName={}",
+            date, assignment.isWorkingDay(), isWeeklyLeave, workingHours != null, shiftName);
+
+        return new DayScheduleDTO(
+                date.toString(),
+                getDayName(date, date.getDayOfWeek()),
+                assignment.isWorkingDay(),
+                false,  // isHoliday - TODO: implement holiday check
+                isWeeklyLeave,
+                shiftName,
+                shiftColor,
+                workingHours,
+                null  // holidayName
+        );
+    }
+
+    private String getDayName(LocalDate date, DayOfWeek dayOfWeek) {
+        // Add date suffix for better display
+        int day = date.getDayOfMonth();
+        String suffix = getDaySuffix(day);
+        return dayOfWeek.toString().charAt(0) + dayOfWeek.toString().substring(1).toLowerCase() + " " + day + suffix;
+    }
+
+    private String getDaySuffix(int day) {
+        if (day >= 11 && day <= 13) {
+            return "th";
+        }
+        return switch (day % 10) {
+            case 1 -> "st";
+            case 2 -> "nd";
+            case 3 -> "rd";
+            default -> "th";
+        };
+    }
+
+    private String formatDateRange(LocalDate start, LocalDate end) {
+        if (start.equals(end)) {
+            return start.toString();
+        }
+        return start + " - " + end;
+    }
+
+    private String formatWorkingHours(WorkingHours wh) {
+        if (wh == null) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        if (wh.getStartTime() != null) {
+            sb.append(wh.getStartTime().toString());
+        }
+        if (wh.getEndTime() != null) {
+            sb.append(" - ").append(wh.getEndTime().toString());
+        }
+        return sb.toString();
     }
 
     // =====================================================

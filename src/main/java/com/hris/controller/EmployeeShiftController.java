@@ -8,13 +8,11 @@ import com.hris.model.EmployeeShiftSetting;
 import com.hris.model.ShiftPattern;
 import com.hris.model.WorkingHours;
 import com.hris.model.enums.EmployeeStatus;
-import com.hris.service.DepartmentService;
-import com.hris.service.EmployeeService;
-import com.hris.service.EmployeeShiftService;
-import com.hris.service.ShiftPatternService;
-import com.hris.service.WorkingHoursService;
+import com.hris.service.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -44,6 +42,7 @@ public class EmployeeShiftController {
     private final ShiftPatternService shiftPatternService;
     private final WorkingHoursService workingHoursService;
     private final DepartmentService departmentService;
+    private final CompanyService companyService;
 
     // =====================================================
     // EMPLOYEE SHIFT ASSIGNMENT
@@ -164,6 +163,61 @@ public class EmployeeShiftController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/employees/{id}/shift-schedules";
+    }
+
+    /**
+     * Get shift schedule for detail modal (AJAX)
+     * Returns weekly breakdown of shift assignments
+     */
+    @GetMapping("/{id}/shift-schedule")
+    @ResponseBody
+    public List<WeekScheduleDTO> getShiftSchedule(
+            @PathVariable Long id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        log.info("Getting shift schedule for employee {} from {} to {}", id, startDate, endDate);
+        return employeeShiftService.getShiftScheduleByWeeks(id, startDate, endDate);
+    }
+
+    /**
+     * Show shift detail page for employee
+     */
+    @GetMapping("/{id}/shift-detail")
+    public String showShiftDetail(@PathVariable Long id,
+                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Integer month,
+                                  @RequestParam(required = false) Integer year,
+                                  Model model,
+                                  RedirectAttributes redirectAttributes) {
+        Employee employee = employeeService.getEmployeeById(id);
+        if (employee == null) {
+            redirectAttributes.addFlashAttribute("error", "Employee tidak ditemukan");
+            return "redirect:/employees";
+        }
+
+        // Default to current month/year if not specified
+        if (month == null) {
+            month = LocalDate.now().getMonthValue();
+        }
+        if (year == null) {
+            year = LocalDate.now().getYear();
+        }
+
+        List<ShiftPattern> shiftPatterns = shiftPatternService.getAllShiftPatternsWithShiftPackage();
+
+        // Get payroll cutoff date from company settings
+        Integer payrollCutoffDate = 25; // default
+        var company = companyService.getCompany();
+        if (company != null && company.getEmployeePayrollCutoffDate() != null) {
+            payrollCutoffDate = company.getEmployeePayrollCutoffDate();
+        }
+
+        model.addAttribute("employee", employee);
+        model.addAttribute("shiftPatterns", shiftPatterns);
+        model.addAttribute("selectedMonth", month);
+        model.addAttribute("selectedYear", year);
+        model.addAttribute("payrollCutoffDate", payrollCutoffDate);
+        model.addAttribute("activePage", "employees");
+        return "employee/shift-detail";
     }
 
     // =====================================================
@@ -305,5 +359,35 @@ public class EmployeeShiftController {
             this.currentShiftColor = currentShift != null ? currentShift.getColor() : null;
             this.currentShiftEffectiveFrom = effectiveFrom;
         }
+    }
+
+    /**
+     * Week Schedule DTO for shift detail modal
+     */
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class WeekScheduleDTO {
+        private Integer weekNumber;
+        private String dateRange;
+        private List<DayScheduleDTO> days;
+    }
+
+    /**
+     * Day Schedule DTO for shift detail modal
+     */
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class DayScheduleDTO {
+        private String date;
+        private String dayName;
+        private Boolean isWorkingDay;
+        private Boolean isHoliday;
+        private Boolean isWeeklyLeave;
+        private String shiftName;
+        private String shiftColor;
+        private String workingHours;
+        private String holidayName;
     }
 }

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="space-y-6">
+        <!-- Page Header with Back Button -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="flex items-center gap-4">
+                <a href="/employees/shift-assign-bulk" class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
+                    <svg class="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                </a>
+                <div class="flex-1">
+                    <h1 class="text-2xl font-bold text-gray-900">Shift Detail</h1>
+                    <p class="text-sm text-gray-500 mt-1">
+                        <span th:text="${employee.fullName}">Employee Name</span>
+                        <span class="mx-1">•</span>
+                        <span th:text="${employee.email}">email@example.com</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Period Selection -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-5">
+                <form id="periodForm" th:action="@{/employees/{id}/shift-detail(id=${employee.id})}" method="get">
+                    <input type="hidden" name="id" th:value="${employee.id}">
+                    <div class="flex flex-wrap items-end gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Month</label>
+                            <select name="month" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="1" th:selected="${selectedMonth == 1}">January</option>
+                                <option value="2" th:selected="${selectedMonth == 2}">February</option>
+                                <option value="3" th:selected="${selectedMonth == 3}">March</option>
+                                <option value="4" th:selected="${selectedMonth == 4}">April</option>
+                                <option value="5" th:selected="${selectedMonth == 5}">May</option>
+                                <option value="6" th:selected="${selectedMonth == 6}">June</option>
+                                <option value="7" th:selected="${selectedMonth == 7}">July</option>
+                                <option value="8" th:selected="${selectedMonth == 8}">August</option>
+                                <option value="9" th:selected="${selectedMonth == 9}">September</option>
+                                <option value="10" th:selected="${selectedMonth == 10}">October</option>
+                                <option value="11" th:selected="${selectedMonth == 11}">November</option>
+                                <option value="12" th:selected="${selectedMonth == 12}">December</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Year</label>
+                            <select name="year" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="2024" th:selected="${selectedYear == 2024}">2024</option>
+                                <option value="2025" th:selected="${selectedYear == 2025}">2025</option>
+                                <option value="2026" th:selected="${selectedYear == 2026}">2026</option>
+                                <option value="2027" th:selected="${selectedYear == 2027}">2027</option>
+                                <option value="2028" th:selected="${selectedYear == 2028}">2028</option>
+                            </select>
+                        </div>
+                        <div class="flex-1 min-w-[200px]">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Period</label>
+                            <p id="periodDisplay" class="text-sm text-gray-600 py-2">
+                                <span class="font-medium">-</span>
+                                <span class="mx-1">—</span>
+                                <span class="font-medium">-</span>
+                            </p>
+                        </div>
+                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 border border-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-all">
+                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                            </svg>
+                            Load
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+            <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
+            <p class="text-gray-600">Loading shift schedule...</p>
+        </div>
+
+        <!-- Schedule Table -->
+        <div id="scheduleContainer" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden" style="display: none;">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b">Date</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b">Day</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b">Shift Pattern</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b">Clock In</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b">Clock Out</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scheduleBody" class="divide-y divide-gray-200">
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="text-center py-12" style="display: none;">
+                <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0h18M5.25 6h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                </svg>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">No shift data available</h3>
+                <p class="text-sm text-gray-500">This employee does not have an active shift pattern</p>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const employeeId = /*[[${employee.id}]]*/ 0;
+        const selectedMonth = /*[[${selectedMonth}]]*/ 1;
+        const selectedYear = /*[[${selectedYear}]]*/ 2026;
+        const payrollCutoffDate = /*[[${payrollCutoffDate}]]*/ 25;
+
+        // Calculate period based on payroll cutoff from company settings
+        // Cutoff date is the END date of payroll period
+        function calculatePeriod(month, year) {
+            const cutoffDay = payrollCutoffDate;
+            let periodStart, periodEnd;
+
+            // END: Cutoff day of the selected month
+            periodEnd = new Date(year, month - 1, cutoffDay);
+
+            // START: Day after cutoff of previous month
+            // If January (month=1), start from December of previous year
+            if (month === 1) {
+                periodStart = new Date(year - 1, 11, cutoffDay + 1);
+            } else {
+                // Otherwise, start from previous month
+                periodStart = new Date(year, month - 2, cutoffDay + 1);
+            }
+
+            // Format date as YYYY-MM-DD using local time (not UTC)
+            const formatDateLocal = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            return {
+                start: formatDateLocal(periodStart),
+                end: formatDateLocal(periodEnd),
+                displayStart: periodStart.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+                displayEnd: periodEnd.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+            };
+        }
+
+        // Format date for display
+        function formatDate(dateStr) {
+            return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        // Get status badge HTML
+        function getStatusBadge(day) {
+            console.log('getStatusBadge for', day.date, ': isWorkingDay=', day.isWorkingDay, 'isWeeklyLeave=', day.isWeeklyLeave, 'isHoliday=', day.isHoliday);
+            if (day.isHoliday) {
+                return `<span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700">
+                    ${day.holidayName || 'Holiday'}
+                </span>`;
+            }
+            if (day.isWeeklyLeave) {
+                return `<span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">
+                    Weekly Off
+                </span>`;
+            }
+            if (!day.isWorkingDay) {
+                return `<span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-gray-200 text-gray-600">
+                    OFF
+                </span>`;
+            }
+            return `<span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                Working Day
+            </span>`;
+        }
+
+        // Load shift schedule
+        async function loadSchedule() {
+            const period = calculatePeriod(selectedMonth, selectedYear);
+
+            // Update period display
+            document.getElementById('periodDisplay').innerHTML =
+                `<span class="font-medium">${period.displayStart}</span>
+                 <span class="mx-1">—</span>
+                 <span class="font-medium">${period.displayEnd}</span>`;
+
+            // Show loading
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('scheduleContainer').style.display = 'none';
+
+            try {
+                const url = `/employees/${employeeId}/shift-schedule?startDate=${period.start}&endDate=${period.end}`;
+                const response = await fetch(url);
+                const weeks = await response.json();
+
+                // Flatten and sort by date
+                const allDays = [];
+                weeks.forEach(week => {
+                    if (week.days && week.days.length > 0) {
+                        allDays.push(...week.days);
+                    }
+                });
+                allDays.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                // Hide loading
+                document.getElementById('loadingState').style.display = 'none';
+
+                if (allDays.length === 0) {
+                    document.getElementById('scheduleContainer').style.display = 'block';
+                    document.getElementById('emptyState').style.display = 'block';
+                    document.querySelector('#scheduleContainer table').style.display = 'none';
+                    return;
+                }
+
+                // Show table and render data
+                document.getElementById('scheduleContainer').style.display = 'block';
+                document.getElementById('emptyState').style.display = 'none';
+                document.querySelector('#scheduleContainer table').style.display = 'table';
+
+                const tbody = document.getElementById('scheduleBody');
+                tbody.innerHTML = allDays.map(day => {
+                    // Show shift pattern if assigned (regardless of working day or off day)
+                    const shiftHtml = day.shiftName
+                        ? `<span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded" style="background-color: ${day.shiftColor}20; color: ${day.shiftColor}">
+                            ${day.shiftName}
+                           </span>`
+                        : '<span class="text-sm text-gray-400">—</span>';
+
+                    const clockIn = (day.workingHours && day.workingHours.includes('-'))
+                        ? day.workingHours.split(' - ')[0]
+                        : '—';
+                    const clockOut = (day.workingHours && day.workingHours.includes('-'))
+                        ? day.workingHours.split(' - ')[1]
+                        : '—';
+
+                    const rowClass = day.isHoliday ? 'bg-red-50' : (day.isWeeklyLeave ? 'bg-yellow-50' : 'hover:bg-gray-50');
+
+                    return `<tr class="${rowClass}">
+                        <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">${formatDate(day.date)}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">${day.dayName}</td>
+                        <td class="px-4 py-3">${shiftHtml}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">${clockIn}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">${clockOut}</td>
+                        <td class="px-4 py-3">${getStatusBadge(day)}</td>
+                    </tr>`;
+                }).join('');
+
+            } catch (error) {
+                console.error('Error loading schedule:', error);
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('scheduleContainer').style.display = 'block';
+                document.getElementById('emptyState').style.display = 'block';
+                document.querySelector('#scheduleContainer table').style.display = 'none';
+            }
+        }
+
+        // Load on page ready
+        document.addEventListener('DOMContentLoaded', loadSchedule);
+    </script>
+</div>
+</html>

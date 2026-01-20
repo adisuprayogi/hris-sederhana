@@ -124,6 +124,7 @@
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Position</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Current Shift</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Last Update</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -163,6 +164,14 @@
                                 <td class="px-5 py-4">
                                     <span x-show="emp.currentShiftEffectiveFrom" class="text-sm text-gray-600" x-text="formatDate(emp.currentShiftEffectiveFrom)"></span>
                                     <span x-show="!emp.currentShiftEffectiveFrom" class="text-sm text-gray-400">—</span>
+                                </td>
+                                <td class="px-5 py-4">
+                                    <a :href="`/employees/${emp.id}/shift-detail`" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+                                        <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 5.5 12 5.5c4.638 0 8.573 2.007 11.963 6.822a1.012 1.012 0 010-.639c-3.39-4.815-7.425-6.822-12.004-6.822-4.57 0-8.578 2.007-11.963 6.821zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0z" />
+                                        </svg>
+                                        Detail
+                                    </a>
                                 </td>
                             </tr>
                         </template>
@@ -241,10 +250,9 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Result Modal -->
-    <div x-show="result.show" x-transition.opacity
+        <!-- Result Modal -->
+        <div x-show="result.show" x-transition.opacity
          @click="closeResult()"
          class="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-[9999] p-4"
          x-cloak>
@@ -366,6 +374,165 @@
         </div>
     </div>
 
+    <!-- Shift Detail Modal -->
+    <div x-show="detail.show" x-transition.opacity
+         @click.self="closeDetail()"
+         class="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-[9999] p-4"
+         x-cloak>
+        <div class="bg-white rounded-xl shadow-xl w-full h-[600px] flex flex-col overflow-hidden">
+            <!-- Header -->
+            <div class="px-5 py-4 border-b border-gray-200 shrink-0">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">Shift Detail Simulation</h3>
+                        <p class="text-sm text-gray-500 mt-1">
+                            <span x-text="detail.employee?.fullName"></span>
+                            <span class="mx-1">•</span>
+                            <span x-text="detail.employee?.email"></span>
+                        </p>
+                    </div>
+                    <button @click="closeDetail()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Period Selection -->
+                <div class="flex flex-wrap items-end gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Month</label>
+                        <select x-model="detail.month" @change="loadShiftSchedule()" class="px-2 py-1.5 border border-gray-300 rounded text-sm">
+                            <option value="0">January</option>
+                            <option value="1">February</option>
+                            <option value="2">March</option>
+                            <option value="3">April</option>
+                            <option value="4">May</option>
+                            <option value="5">June</option>
+                            <option value="6">July</option>
+                            <option value="7">August</option>
+                            <option value="8">September</option>
+                            <option value="9">October</option>
+                            <option value="10">November</option>
+                            <option value="11">December</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Year</label>
+                        <select x-model="detail.year" @change="loadShiftSchedule()" class="px-2 py-1.5 border border-gray-300 rounded text-sm">
+                            <template x-for="y in availableYears">
+                                <option :value="y" x-text="y"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div class="flex-1 min-w-[150px]">
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Period</label>
+                        <p class="text-xs text-gray-600 py-1.5">
+                            <span class="font-medium" x-text="detail.periodStart"></span>
+                            <span class="mx-1">—</span>
+                            <span class="font-medium" x-text="detail.periodEnd"></span>
+                        </p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Shift</label>
+                        <p class="text-xs py-1.5 px-2 bg-gray-50 rounded border border-gray-200">
+                            <span x-show="detail.employee?.currentShiftPatternName" x-text="detail.employee?.currentShiftPatternName"></span>
+                            <span x-show="!detail.employee?.currentShiftPatternName" class="text-gray-400">No Shift</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Content - Scrollable -->
+            <div class="flex-1 overflow-auto">
+                <!-- Loading State -->
+                <div x-show="detail.loading" class="text-center py-12">
+                    <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
+                    <p class="text-gray-600">Loading shift schedule...</p>
+                </div>
+
+                <!-- Table -->
+                <div x-show="!detail.loading">
+                    <!-- Empty State -->
+                    <div x-show="!detail.schedule || detail.schedule.length === 0" class="text-center py-12">
+                        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0h18M5.25 6h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                        </svg>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">No shift data available</h3>
+                        <p class="text-sm text-gray-500">This employee does not have an active shift pattern</p>
+                    </div>
+
+                    <!-- Data Table -->
+                    <div x-show="detail.schedule && detail.schedule.length > 0">
+                        <table class="w-full border-collapse">
+                            <thead class="bg-gray-50 sticky top-0 z-10">
+                                <tr>
+                                    <th class="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b">Date</th>
+                                    <th class="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b">Day</th>
+                                    <th class="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b">Shift Pattern</th>
+                                    <th class="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b">Clock In</th>
+                                    <th class="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b">Clock Out</th>
+                                    <th class="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <template x-for="day in flattenedSchedule" :key="day.date">
+                                    <tr class="hover:bg-gray-50"
+                                        :class="{
+                                            'bg-red-50': day.isHoliday,
+                                            'bg-yellow-50': day.isWeeklyLeave
+                                        }">
+                                        <td class="px-3 py-2 text-sm text-gray-900 whitespace-nowrap" x-text="formatDate(day.date)"></td>
+                                        <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap" x-text="day.dayName"></td>
+                                        <td class="px-3 py-2">
+                                            <span x-show="day.isWorkingDay && day.shiftName" class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded"
+                                                  :style="{backgroundColor: day.shiftColor + '20', color: day.shiftColor}">
+                                                <span x-text="day.shiftName"></span>
+                                            </span>
+                                            <span x-show="!day.isWorkingDay || !day.shiftName" class="text-sm text-gray-400">—</span>
+                                        </td>
+                                        <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">
+                                            <span x-show="day.workingHours && day.workingHours.includes('-')" x-text="day.workingHours.split(' - ')[0]"></span>
+                                            <span x-show="!day.workingHours || !day.workingHours.includes('-')">—</span>
+                                        </td>
+                                        <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">
+                                            <span x-show="day.workingHours && day.workingHours.includes('-')" x-text="day.workingHours.split(' - ')[1]"></span>
+                                            <span x-show="!day.workingHours || !day.workingHours.includes('-')">—</span>
+                                        </td>
+                                        <td class="px-3 py-2">
+                                            <span x-show="day.isHoliday" class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-700">
+                                                <span x-text="day.holidayName || 'Holiday'"></span>
+                                            </span>
+                                            <span x-show="day.isWeeklyLeave" class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">
+                                                Weekly Off
+                                            </span>
+                                            <span x-show="!day.isWorkingDay && !day.isHoliday && !day.isWeeklyLeave" class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-gray-200 text-gray-600">
+                                                OFF
+                                            </span>
+                                            <span x-show="day.isWorkingDay && !day.isHoliday && !day.isWeeklyLeave" class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                                                Working Day
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-4 py-3 border-t border-gray-200 shrink-0">
+                <div class="flex justify-end">
+                    <button @click="closeDetail()" class="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-200 transition-all">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
     <script th:inline="javascript">
         // Extract shift patterns from hidden data container
         function extractShiftPatterns() {
@@ -402,6 +569,32 @@
                 result: {
                     show: false,
                     data: {}
+                },
+                detail: {
+                    show: false,
+                    loading: false,
+                    employee: null,
+                    month: new Date().getMonth(),
+                    year: new Date().getFullYear(),
+                    periodStart: '',
+                    periodEnd: '',
+                    schedule: []
+                },
+                availableYears: Array.from({length: 5}, (_, i) => new Date().getFullYear() - 2 + i),
+
+                get flattenedSchedule() {
+                    // Flatten weeks and sort by date
+                    if (!this.detail.schedule || this.detail.schedule.length === 0) {
+                        return [];
+                    }
+                    const allDays = [];
+                    this.detail.schedule.forEach(week => {
+                        if (week.days && week.days.length > 0) {
+                            allDays.push(...week.days);
+                        }
+                    });
+                    // Sort by date
+                    return allDays.sort((a, b) => new Date(a.date) - new Date(b.date));
                 },
 
                 initData() {
@@ -561,6 +754,69 @@
                     this.result.show = false;
                     this.result.data = {};
                     // Data already updated locally after assignment, no need to fetch again
+                },
+
+                showShiftDetail(employee) {
+                    console.log('[showShiftDetail] Opening for employee:', employee.fullName);
+                    this.detail.employee = employee;
+                    this.detail.month = new Date().getMonth();
+                    this.detail.year = new Date().getFullYear();
+                    this.detail.show = true;
+                    this.loadShiftSchedule();
+                },
+
+                closeDetail() {
+                    console.log('[closeDetail] Closing modal');
+                    this.detail.show = false;
+                    this.detail.employee = null;
+                    this.detail.schedule = [];
+                },
+
+                async loadShiftSchedule() {
+                    console.log('[loadShiftSchedule] Loading schedule for', this.detail.month, this.detail.year);
+                    this.detail.loading = true;
+                    this.detail.schedule = [];
+
+                    // Calculate period based on payroll cutoff (day 25)
+                    const cutoffDay = 25;
+                    const month = parseInt(this.detail.month);
+                    const year = parseInt(this.detail.year);
+
+                    // Payroll period: from previous month 26 to current month 25
+                    let periodStart, periodEnd;
+
+                    if (month === 0) { // January
+                        periodStart = new Date(year - 1, 11, 26); // Dec 26 previous year
+                    } else {
+                        periodStart = new Date(year, month - 1, 26);
+                    }
+
+                    periodEnd = new Date(year, month, cutoffDay);
+
+                    // Format period strings
+                    const formatDate = (d) => d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                    this.detail.periodStart = formatDate(periodStart);
+                    this.detail.periodEnd = formatDate(periodEnd);
+
+                    try {
+                        const params = new URLSearchParams({
+                            startDate: periodStart.toISOString().split('T')[0],
+                            endDate: periodEnd.toISOString().split('T')[0]
+                        });
+
+                        const url = `/employees/${this.detail.employee.id}/shift-schedule?${params}`;
+                        console.log('[loadShiftSchedule] Fetching from:', url);
+
+                        const response = await fetch(url);
+                        const data = await response.json();
+                        console.log('[loadShiftSchedule] Response data:', data);
+                        this.detail.schedule = data;
+                    } catch (error) {
+                        console.error('[loadShiftSchedule] Error loading schedule:', error);
+                        alert('Failed to load shift schedule');
+                    } finally {
+                        this.detail.loading = false;
+                    }
                 },
 
                 getInitials(name) {

@@ -36,6 +36,7 @@ com/hris/repository/WorkingHoursRepository.class
 com/hris/controller/ContractHistoryController.class
 com/hris/controller/DepartmentController.class
 com/hris/repository/PositionRepository.class
+com/hris/controller/EmployeeShiftController$DayScheduleDTO.class
 com/hris/controller/LeaveSettingsController.class
 com/hris/model/LecturerSalaryRate.class
 com/hris/model/enums/ChangeType.class
@@ -89,6 +90,7 @@ com/hris/controller/LeaveTypeSettingController.class
 com/hris/dto/BulkAssignShiftResult$SuccessItem$SuccessItemBuilder.class
 com/hris/model/TeachingAttendanceStaging.class
 com/hris/repository/TeachingScheduleStagingRepository.class
+com/hris/controller/EmployeeShiftController$WeekScheduleDTO.class
 com/hris/model/PublicationStaging$SintaLevel.class
 com/hris/model/enums/PayrollPeriodTypeConverter.class
 com/hris/model/enums/LeaveType.class
