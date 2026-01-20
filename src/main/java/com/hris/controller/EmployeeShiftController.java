@@ -1,14 +1,19 @@
 package com.hris.controller;
 
+import com.hris.dto.BulkAssignShiftRequest;
+import com.hris.dto.BulkAssignShiftResult;
 import com.hris.model.Employee;
 import com.hris.model.EmployeeShiftSchedule;
 import com.hris.model.EmployeeShiftSetting;
 import com.hris.model.ShiftPattern;
 import com.hris.model.WorkingHours;
+import com.hris.service.DepartmentService;
 import com.hris.service.EmployeeService;
 import com.hris.service.EmployeeShiftService;
 import com.hris.service.ShiftPatternService;
 import com.hris.service.WorkingHoursService;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -18,6 +23,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -36,6 +42,7 @@ public class EmployeeShiftController {
     private final EmployeeService employeeService;
     private final ShiftPatternService shiftPatternService;
     private final WorkingHoursService workingHoursService;
+    private final DepartmentService departmentService;
 
     // =====================================================
     // EMPLOYEE SHIFT ASSIGNMENT
@@ -156,5 +163,126 @@ public class EmployeeShiftController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/employees/{id}/shift-schedules";
+    }
+
+    // =====================================================
+    // BULK SHIFT ASSIGNMENT
+    // =====================================================
+
+    /**
+     * Show bulk shift assignment page
+     */
+    @GetMapping("/shift-assign-bulk")
+    public String showBulkAssignForm(
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(required = false) Long shiftPatternId,
+            @RequestParam(required = false) String status,
+            Model model) {
+        // Get all shift patterns for dropdown
+        List<ShiftPattern> shiftPatterns = shiftPatternService.getAllShiftPatternsWithShiftPackage();
+        model.addAttribute("shiftPatterns", shiftPatterns);
+
+        // Get all departments for filter
+        var departments = departmentService.getAllDepartments();
+        model.addAttribute("departments", departments);
+
+        // Pre-fill filters
+        model.addAttribute("filterDepartmentId", departmentId);
+        model.addAttribute("filterShiftPatternId", shiftPatternId);
+        model.addAttribute("filterStatus", status);
+
+        model.addAttribute("activePage", "bulk-assign-shift");
+        model.addAttribute("title", "Bulk Assign Shift Pattern");
+        return "employee/bulk-assign";
+    }
+
+    /**
+     * Get filtered employees for bulk assignment (AJAX)
+     */
+    @GetMapping("/shift-assign-bulk/employees")
+    @ResponseBody
+    public List<EmployeeShiftSummary> getFilteredEmployees(
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(required = false) Long currentShiftPatternId) {
+        log.info("Getting filtered employees - dept: {}, shift: {}", departmentId, currentShiftPatternId);
+
+        // Get employees based on filters
+        List<Employee> employees;
+        if (departmentId != null) {
+            employees = employeeService.getEmployeesByDepartment(departmentId);
+        } else {
+            employees = employeeService.getAllEmployees();
+        }
+
+        // Convert to summary DTO with current shift info
+        return employees.stream()
+                .map(emp -> {
+                    ShiftPattern currentShift = employeeShiftService.getActiveShiftPattern(emp.getId());
+                    // Filter by current shift if specified
+                    if (currentShiftPatternId != null && currentShift != null) {
+                        if (!currentShift.getId().equals(currentShiftPatternId)) {
+                            return null;
+                        }
+                    }
+                    return new EmployeeShiftSummary(emp, currentShift);
+                })
+                .filter(item -> item != null)
+                .toList();
+    }
+
+    /**
+     * Execute bulk shift assignment
+     */
+    @PostMapping("/shift-assign-bulk/execute")
+    @ResponseBody
+    public BulkAssignShiftResult executeBulkAssign(
+            @RequestBody BulkAssignShiftRequest request,
+            Principal principal) {
+        log.info("Executing bulk shift assignment for {} employees by user {}",
+                request.getEmployeeIds().size(), principal.getName());
+
+        try {
+            return employeeShiftService.bulkAssignShiftPattern(request, null);
+        } catch (Exception e) {
+            log.error("Bulk assignment failed", e);
+            BulkAssignShiftResult errorResult = BulkAssignShiftResult.builder()
+                    .retroactive(request.isRetroactive())
+                    .retroactiveDays(request.getRetroactiveDays())
+                    .build();
+            errorResult.getFailureList().add(BulkAssignShiftResult.FailureItem.builder()
+                    .errorMessage("Bulk assignment failed: " + e.getMessage())
+                    .errorType("SYSTEM_ERROR")
+                    .build());
+            return errorResult;
+        }
+    }
+
+    /**
+     * Summary DTO for employee with current shift
+     */
+    @Data
+    @AllArgsConstructor
+    public static class EmployeeShiftSummary {
+        private Long id;
+        private String fullName;
+        private String departmentName;
+        private String positionName;
+        private String photoPath;
+        private Long currentShiftPatternId;
+        private String currentShiftPatternName;
+        private String currentShiftPatternCode;
+        private String currentShiftColor;
+
+        public EmployeeShiftSummary(Employee employee, ShiftPattern currentShift) {
+            this.id = employee.getId();
+            this.fullName = employee.getFullName();
+            this.departmentName = employee.getDepartment() != null ? employee.getDepartment().getName() : null;
+            this.positionName = employee.getPosition() != null ? employee.getPosition().getName() : null;
+            this.photoPath = employee.getPhotoPath();
+            this.currentShiftPatternId = currentShift != null ? currentShift.getId() : null;
+            this.currentShiftPatternName = currentShift != null ? currentShift.getName() : null;
+            this.currentShiftPatternCode = currentShift != null ? currentShift.getCode() : null;
+            this.currentShiftColor = currentShift != null ? currentShift.getColor() : null;
+        }
     }
 }

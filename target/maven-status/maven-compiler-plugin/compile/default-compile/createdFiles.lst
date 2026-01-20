@@ -46,7 +46,9 @@ com/hris/model/PublicationStaging.class
 com/hris/model/enums/CompanyType.class
 com/hris/model/ThesisGuidanceStaging.class
 com/hris/service/LeaveRequestService$LeaveRequestStats.class
+com/hris/dto/BulkAssignShiftResult$BulkAssignShiftResultBuilder.class
 com/hris/HrisApplication.class
+com/hris/dto/BulkAssignShiftRequest$BulkAssignShiftRequestBuilder.class
 com/hris/model/AuditableEntity.class
 com/hris/controller/FileController.class
 com/hris/model/LecturerSalary.class
@@ -69,8 +71,10 @@ com/hris/controller/ShiftPatternController.class
 com/hris/repository/ContractHistoryRepository.class
 com/hris/model/enums/AttendanceStatus.class
 com/hris/repository/EmployeeShiftSettingRepository.class
+com/hris/controller/EmployeeShiftController$EmployeeShiftSummary.class
 com/hris/controller/EmployeeController.class
 com/hris/repository/PublicationStagingRepository.class
+com/hris/dto/BulkAssignShiftResult$SuccessItem.class
 com/hris/repository/ThesisGuidanceStagingRepository.class
 com/hris/model/LeaveBalance.class
 com/hris/model/SoftDeleteEntity.class
@@ -82,6 +86,7 @@ com/hris/controller/LecturerController.class
 com/hris/model/Department.class
 com/hris/model/ContractHistory.class
 com/hris/controller/LeaveTypeSettingController.class
+com/hris/dto/BulkAssignShiftResult$SuccessItem$SuccessItemBuilder.class
 com/hris/model/TeachingAttendanceStaging.class
 com/hris/repository/TeachingScheduleStagingRepository.class
 com/hris/model/PublicationStaging$SintaLevel.class
@@ -96,12 +101,14 @@ com/hris/repository/LecturerProfileRepository.class
 com/hris/model/EmployeeShiftSchedule.class
 com/hris/model/PublicationStaging$ScopusQuartile.class
 com/hris/model/WorkingHours.class
+com/hris/dto/BulkAssignShiftResult$FailureItem.class
 com/hris/config/SecurityConfig.class
 com/hris/model/ThesisExaminationStaging.class
 com/hris/model/EmployeeShiftSchedule$EmployeeShiftScheduleBuilder.class
 com/hris/controller/ContractHistoryController$1.class
 com/hris/controller/LecturerSalaryRateController.class
 com/hris/model/enums/Gender.class
+com/hris/dto/BulkAssignShiftResult$FailureItem$FailureItemBuilder.class
 com/hris/service/EmployeeJobHistoryService.class
 com/hris/model/enums/MaritalStatus.class
 com/hris/model/EmployeeJobHistory.class
@@ -120,6 +127,7 @@ com/hris/security/CustomUserDetailsService.class
 com/hris/service/SalaryHistoryService.class
 com/hris/service/LecturerProfileService.class
 com/hris/model/enums/ActivityType.class
+com/hris/dto/BulkAssignShiftResult$SkippedItem$SkippedItemBuilder.class
 com/hris/service/LeaveTypeSettingService.class
 com/hris/service/ApprovalService.class
 com/hris/controller/SalaryHistoryController.class
@@ -131,6 +139,7 @@ com/hris/model/ShiftPackage.class
 com/hris/model/EmployeeShiftSetting.class
 com/hris/model/LeaveTypeSetting.class
 com/hris/service/DepartmentService.class
+com/hris/dto/BulkAssignShiftResult$SkippedItem.class
 com/hris/service/LeaveRequestService.class
 com/hris/controller/AuthController.class
 com/hris/controller/EmployeeShiftController.class
@@ -139,8 +148,10 @@ com/hris/controller/CompanyController.class
 com/hris/controller/PasswordEncoderTestController.class
 com/hris/model/enums/LeaveRequestStatus.class
 com/hris/repository/LeaveRequestRepository.class
+com/hris/dto/BulkAssignShiftResult.class
 com/hris/service/LecturerService.class
 com/hris/controller/ShiftPackageController.class
+com/hris/dto/BulkAssignShiftRequest.class
 com/hris/model/Company.class
 com/hris/service/HolidayService.class
 com/hris/repository/LeaveTypeSettingRepository.class

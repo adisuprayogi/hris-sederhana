@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
@@ -98,6 +99,7 @@ public class ShiftPattern extends AuditableEntity {
     private Boolean overrideWeeklyLeave = false;
 
     // Relations
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shift_package_id", insertable = false, updatable = false)
     private ShiftPackage shiftPackage;

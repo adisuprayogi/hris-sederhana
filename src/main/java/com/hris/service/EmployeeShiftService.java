@@ -1,6 +1,9 @@
 package com.hris.service;
 
+import com.hris.dto.BulkAssignShiftRequest;
+import com.hris.dto.BulkAssignShiftResult;
 import com.hris.model.*;
+import com.hris.model.enums.EmployeeStatus;
 import com.hris.repository.EmployeeShiftScheduleRepository;
 import com.hris.repository.EmployeeShiftSettingRepository;
 import lombok.Builder;
@@ -12,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,6 +33,8 @@ public class EmployeeShiftService {
     private final ShiftPatternService shiftPatternService;
     private final ShiftPackageService shiftPackageService;
     private final WorkingHoursService workingHoursService;
+    private final EmployeeService employeeService;
+    private final DepartmentService departmentService;
 
     // =====================================================
     // SHIFT ASSIGNMENT
@@ -287,6 +294,154 @@ public class EmployeeShiftService {
                 .isOvertimeAllowed(pattern.getIsOvertimeAllowed() != null && pattern.getIsOvertimeAllowed())
                 .isAttendanceMandatory(pattern.getIsAttendanceMandatory() != null && pattern.getIsAttendanceMandatory())
                 .lateToleranceMinutes(pattern.getLateToleranceMinutes())
+                .build();
+    }
+
+    // =====================================================
+    // BULK SHIFT ASSIGNMENT
+    // =====================================================
+
+    /**
+     * Bulk assign shift pattern to multiple employees
+     * Supports retroactive assignment (past effective date)
+     * Returns partial success - failures don't roll back successes
+     */
+    @Transactional
+    public BulkAssignShiftResult bulkAssignShiftPattern(BulkAssignShiftRequest request, Long currentUserId) {
+        log.info("Bulk assigning shift pattern {} to {} employees, effective from {}",
+                request.getShiftPatternId(), request.getEmployeeIds().size(), request.getEffectiveFrom());
+
+        BulkAssignShiftResult result = BulkAssignShiftResult.builder()
+                .retroactive(request.isRetroactive())
+                .retroactiveDays(request.getRetroactiveDays())
+                .build();
+
+        // Validate shift pattern exists
+        ShiftPattern newPattern = shiftPatternService.getShiftPatternById(request.getShiftPatternId());
+        if (newPattern == null) {
+            throw new IllegalArgumentException("Shift pattern tidak ditemukan: " + request.getShiftPatternId());
+        }
+
+        for (Long employeeId : request.getEmployeeIds()) {
+            try {
+                processSingleAssignment(employeeId, request, newPattern, currentUserId, result);
+            } catch (Exception e) {
+                log.error("Failed to assign shift to employee {}", employeeId, e);
+                result.getFailureList().add(buildFailureItem(employeeId, e.getMessage()));
+            }
+        }
+
+        log.info("Bulk assignment completed: {} success, {} failed, {} skipped",
+                result.getSuccessCount(), result.getFailureCount(), result.getSkippedCount());
+
+        return result;
+    }
+
+    /**
+     * Process single employee assignment
+     */
+    private void processSingleAssignment(Long employeeId, BulkAssignShiftRequest request,
+                                         ShiftPattern newPattern, Long currentUserId,
+                                         BulkAssignShiftResult result) {
+        // 1. Validate employee exists and active
+        Employee employee = employeeService.getEmployeeById(employeeId);
+        if (employee == null) {
+            result.getFailureList().add(buildFailureItem(employeeId, "EMPLOYEE_NOT_FOUND", "Employee tidak ditemukan"));
+            return;
+        }
+
+        if (!EmployeeStatus.ACTIVE.equals(employee.getStatus())) {
+            result.getFailureList().add(buildFailureItem(employeeId, "INACTIVE",
+                    "Employee tidak aktif: " + employee.getStatus()));
+            return;
+        }
+
+        // 2. Get current assignment
+        EmployeeShiftSetting currentAssignment = getCurrentAssignment(employeeId);
+
+        // 3. Skip if same pattern
+        if (currentAssignment != null && currentAssignment.getShiftPatternId().equals(request.getShiftPatternId())) {
+            result.getSkippedList().add(BulkAssignShiftResult.SkippedItem.builder()
+                    .employeeId(employeeId)
+                    .employeeName(employee.getFullName())
+                    .departmentName(employee.getDepartment() != null ? employee.getDepartment().getName() : null)
+                    .positionName(employee.getPosition() != null ? employee.getPosition().getName() : null)
+                    .skipReason("SAME_PATTERN")
+                    .currentShiftName(newPattern.getName())
+                    .build());
+            return;
+        }
+
+        // 4. Close current assignment if exists
+        LocalDate previousClosedOn = null;
+        String previousShiftName = null;
+        if (currentAssignment != null && currentAssignment.getEffectiveTo() == null) {
+            LocalDate dayBefore = request.getEffectiveFrom().minusDays(1);
+            currentAssignment.setEffectiveTo(dayBefore);
+            employeeShiftSettingRepository.save(currentAssignment);
+            previousClosedOn = dayBefore;
+            previousShiftName = currentAssignment.getShiftPattern() != null ?
+                    currentAssignment.getShiftPattern().getName() : "Unknown";
+        }
+
+        // 5. Create new assignment
+        EmployeeShiftSetting newSetting = EmployeeShiftSetting.builder()
+                .employeeId(employeeId)
+                .shiftPatternId(request.getShiftPatternId())
+                .effectiveFrom(request.getEffectiveFrom())
+                .effectiveTo(null)
+                .reason(request.getReason())
+                .notes(request.getNotes())
+                .createdBy(currentUserId)
+                .build();
+
+        EmployeeShiftSetting saved = employeeShiftSettingRepository.save(newSetting);
+
+        // 6. Add to success list
+        result.getSuccessList().add(BulkAssignShiftResult.SuccessItem.builder()
+                .employeeId(employeeId)
+                .employeeName(employee.getFullName())
+                .departmentName(employee.getDepartment() != null ? employee.getDepartment().getName() : null)
+                .positionName(employee.getPosition() != null ? employee.getPosition().getName() : null)
+                .assignmentId(saved.getId())
+                .previousShiftName(previousShiftName)
+                .newShiftName(newPattern.getName())
+                .effectiveFrom(request.getEffectiveFrom())
+                .previousClosedOn(previousClosedOn)
+                .wasOverride(currentAssignment != null)
+                .build());
+
+        log.info("Successfully assigned shift {} to employee {}", newPattern.getName(), employeeId);
+    }
+
+    /**
+     * Get current assignment for employee
+     */
+    private EmployeeShiftSetting getCurrentAssignment(Long employeeId) {
+        return employeeShiftSettingRepository.findCurrentActiveByEmployeeId(employeeId).orElse(null);
+    }
+
+    /**
+     * Build failure item with minimal info
+     */
+    private BulkAssignShiftResult.FailureItem buildFailureItem(Long employeeId, String errorMessage) {
+        return buildFailureItem(employeeId, "UNKNOWN", errorMessage);
+    }
+
+    /**
+     * Build failure item with full info
+     */
+    private BulkAssignShiftResult.FailureItem buildFailureItem(Long employeeId, String errorType, String errorMessage) {
+        Employee employee = employeeService.getEmployeeById(employeeId);
+        return BulkAssignShiftResult.FailureItem.builder()
+                .employeeId(employeeId)
+                .employeeName(employee != null ? employee.getFullName() : "Unknown")
+                .departmentName(employee != null && employee.getDepartment() != null ?
+                        employee.getDepartment().getName() : null)
+                .positionName(employee != null && employee.getPosition() != null ?
+                        employee.getPosition().getName() : null)
+                .errorMessage(errorMessage)
+                .errorType(errorType)
                 .build();
     }
 

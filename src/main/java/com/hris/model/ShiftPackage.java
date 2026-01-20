@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.DayOfWeek;
 
@@ -61,30 +62,37 @@ public class ShiftPackage extends AuditableEntity {
     private String color = "#3B82F6";
 
     // Relations (lazy loading for performance)
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sunday_working_hours_id", insertable = false, updatable = false)
     private WorkingHours sundayWorkingHours;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "monday_working_hours_id", insertable = false, updatable = false)
     private WorkingHours mondayWorkingHours;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tuesday_working_hours_id", insertable = false, updatable = false)
     private WorkingHours tuesdayWorkingHours;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "wednesday_working_hours_id", insertable = false, updatable = false)
     private WorkingHours wednesdayWorkingHours;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "thursday_working_hours_id", insertable = false, updatable = false)
     private WorkingHours thursdayWorkingHours;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "friday_working_hours_id", insertable = false, updatable = false)
     private WorkingHours fridayWorkingHours;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "saturday_working_hours_id", insertable = false, updatable = false)
     private WorkingHours saturdayWorkingHours;

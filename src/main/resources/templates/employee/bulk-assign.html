@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <!-- Hidden data container for shift patterns -->
+    <div id="shiftPatternsData" style="display:none;">
+        <div th:each="pattern : ${shiftPatterns}" th:data-id="${pattern.id}" th:data-name="${pattern.name}" th:data-code="${pattern.code}" th:data-description="${pattern.description}"></div>
+    </div>
+
+    <div class="space-y-6" x-data="bulkAssignData()" x-init="initData()">
+        <!-- Page Header -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="flex-1">
+                    <h1 class="text-2xl font-bold text-gray-900">Bulk Assign Shift Pattern</h1>
+                    <p class="text-sm text-gray-500 mt-1">Assign shift pattern to multiple employees at once</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-5">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                    <svg class="w-5 h-5 text-blue-600 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                    </svg>
+                    Filter Employees
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Department Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Department</label>
+                        <select x-model="filters.departmentId" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <option value="">All Departments</option>
+                            <option th:each="dept : ${departments}" th:value="${dept.id}" th:text="${dept.name}"></option>
+                        </select>
+                    </div>
+
+                    <!-- Current Shift Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Current Shift Pattern</label>
+                        <select x-model="filters.shiftPatternId" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <option value="">All Shift Patterns</option>
+                            <option th:each="pattern : ${shiftPatterns}" th:value="${pattern.id}" th:text="${pattern.name}"></option>
+                        </select>
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Employee Status</label>
+                        <select x-model="filters.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <option value="">All Status</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="INACTIVE">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between mt-6">
+                    <div class="text-sm text-gray-500">
+                        Showing <span class="font-medium text-gray-900" x-text="employees.length">0</span> employees
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button @click="clearFilters()" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                            Clear Filters
+                        </button>
+                        <button @click="applyFilters()" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 border border-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-all">
+                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                            </svg>
+                            Apply Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Employees Section -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-5 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-900">
+                        <svg class="w-5 h-5 text-blue-600 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.75 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                        </svg>
+                        Select Employees
+                    </h2>
+                    <div class="flex items-center gap-3">
+                        <button @click="applyFilters()" :disabled="loading" class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50">
+                            <svg class="w-4 h-4" :class="{'fa-spin': loading}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                            </svg>
+                            Refresh
+                        </button>
+                        <span class="text-sm text-gray-500">
+                            <span class="font-medium text-gray-900" x-text="selectedCount">0</span> of <span class="font-medium text-gray-900" x-text="employees.length">0</span> selected
+                        </span>
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" x-model="allSelected" @change="toggleAll()" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                            <span class="text-sm text-gray-700">Select All</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div x-show="loading" class="text-center py-12">
+                <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
+                <p class="text-gray-600">Loading employees...</p>
+            </div>
+
+            <!-- Employee List -->
+            <div x-show="!loading" class="overflow-x-auto">
+                <!-- Empty State -->
+                <div x-show="employees.length === 0" class="text-center py-12">
+                    <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.75 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                    </svg>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No employees found</h3>
+                    <p class="text-sm text-gray-500">Try adjusting your filters</p>
+                </div>
+
+                <!-- Table -->
+                <table x-show="employees.length > 0" class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-12">Select</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Employee</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Department</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Position</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Current Shift</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <template x-for="emp in employees" :key="emp.id">
+                            <tr class="hover:bg-gray-50 transition-colors" :class="{'bg-blue-50': isSelected(emp.id)}">
+                                <td class="px-5 py-4">
+                                    <input type="checkbox" :value="emp.id" x-model="selectedEmployeeIds" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                                </td>
+                                <td class="px-5 py-4">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <span class="text-sm font-semibold text-blue-600" x-text="getInitials(emp.fullName)"></span>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <h3 class="text-sm font-semibold text-gray-900 truncate" x-text="emp.fullName"></h3>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-5 py-4">
+                                    <span class="text-sm text-gray-600" x-text="emp.departmentName || '—'"></span>
+                                </td>
+                                <td class="px-5 py-4">
+                                    <span class="text-sm text-gray-600" x-text="emp.positionName || '—'"></span>
+                                </td>
+                                <td class="px-5 py-4">
+                                    <span x-show="emp.currentShiftPatternName" class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                                        <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span x-text="emp.currentShiftPatternName"></span>
+                                    </span>
+                                    <span x-show="!emp.currentShiftPatternName" class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+                                        No Shift
+                                    </span>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Assignment Form -->
+        <div x-show="selectedCount > 0" class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-5 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">
+                    <svg class="w-5 h-5 text-blue-600 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0h18M5.25 6h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                    </svg>
+                    Shift Assignment Details
+                </h2>
+            </div>
+            <div class="p-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Shift Pattern Selection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Shift Pattern *</label>
+                        <select x-model="assignment.shiftPatternId" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <option value="">Select Shift Pattern</option>
+                            <template x-for="pattern in shiftPatterns" :key="pattern.id">
+                                <option :value="pattern.id" x-text="pattern.name"></option>
+                            </template>
+                        </select>
+                        <p x-show="selectedShiftPattern()" class="mt-1 text-xs text-gray-500" x-text="selectedShiftPattern()?.description"></p>
+                    </div>
+
+                    <!-- Effective Date -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Effective From *</label>
+                        <input type="date" x-model="assignment.effectiveFrom" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+
+                        <!-- Retroactive Warning -->
+                        <div x-show="isRetroactive()" class="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <div class="flex items-start gap-2">
+                                <svg class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                                </svg>
+                                <div class="text-sm text-yellow-800">
+                                    <p class="font-semibold">Retroactive Assignment</p>
+                                    <p x-text="getRetroactiveWarning()"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reason -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Reason *</label>
+                        <input type="text" x-model="assignment.reason" required placeholder="e.g., Department restructuring, Shift rotation, etc." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
+                        <textarea x-model="assignment.notes" rows="2" placeholder="Additional notes (optional)" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"></textarea>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-end mt-6">
+                    <button @click="submitAssignment()" :disabled="submitting" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 border border-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                        <svg class="w-4 h-4" x-show="!submitting" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        </svg>
+                        <svg class="w-4 h-4 fa-spin" x-show="submitting" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.706 4.234c.126.756.557 1.33 1.11 1.33h6.864c.553 0 1.046-.574 1.11-1.33l.706-4.234c.09-.542.56-.94 1.11-.94h2.594c.55 0 1.02.398 1.11.94l.69 4.144c.126.752.574 1.33 1.11 1.33h3.692c.553 0 1.046-.574 1.11-1.33l.69-4.144c.09-.542.56-.94 1.11-.94H19.5m-15 0h.008v.008H4.5m.75 0h.008v-.008H3.75m0 0h-.008v-.008H2.25m13.5 0h.008v.008H16.5m0 0h-.008v-.008H15m0 0h-.008v-.008H13.5m-4.5 0H9m1 0h.008v.008H10m0 0h-.008v-.008H9m1 0h.008v.008H10m-1 0h-.008v-.008H9m-1 0h-.008v-.008H8m6.5 0h.008v.008H15m0 0h-.008v-.008H14.5m0 0h-.008v-.008H13.5m0 0h-.008v-.008H12" />
+                        </svg>
+                        <span x-text="submitting ? 'Processing...' : 'Assign to ' + selectedCount + ' Employees'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div x-show="result.show" x-transition.opacity
+         @click="closeResult()"
+         class="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-[9999] p-4"
+         x-cloak>
+        <div @click.stop="" class="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900">Assignment Result</h3>
+                    <button @click="closeResult()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Summary -->
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                    <div class="bg-green-50 rounded-xl p-5 text-center">
+                        <div class="text-3xl font-bold text-green-600" x-text="result.data.successCount || 0"></div>
+                        <div class="text-sm text-green-700">Success</div>
+                    </div>
+                    <div class="bg-red-50 rounded-xl p-5 text-center">
+                        <div class="text-3xl font-bold text-red-600" x-text="result.data.failureCount || 0"></div>
+                        <div class="text-sm text-red-700">Failed</div>
+                    </div>
+                    <div class="bg-yellow-50 rounded-xl p-5 text-center">
+                        <div class="text-3xl font-bold text-yellow-600" x-text="result.data.skippedCount || 0"></div>
+                        <div class="text-sm text-yellow-700">Skipped</div>
+                    </div>
+                </div>
+
+                <!-- Retroactive Notice -->
+                <div x-show="result.data.retroactive" class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                        </svg>
+                        <p class="text-sm text-yellow-800">
+                            This was a retroactive assignment (<span class="font-medium" x-text="result.data.retroactiveDays"></span> days ago)
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Success List -->
+                <div x-show="result.data.successList && result.data.successList.length > 0" class="mb-6">
+                    <h4 class="font-semibold text-green-700 mb-3">
+                        <svg class="w-5 h-5 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Successfully Assigned
+                    </h4>
+                    <div class="max-h-60 overflow-y-auto space-y-2">
+                        <template x-for="item in result.data.successList" :key="item.employeeId">
+                            <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                                <div>
+                                    <div class="font-medium text-gray-900" x-text="item.employeeName"></div>
+                                    <div class="text-sm text-gray-600">
+                                        <span x-text="item.previousShiftName ? item.previousShiftName + ' → ' : ''"></span>
+                                        <span class="font-semibold text-green-700" x-text="item.newShiftName"></span>
+                                    </div>
+                                </div>
+                                <span class="text-xs text-gray-500" x-text="formatDate(item.effectiveFrom)"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Failed List -->
+                <div x-show="result.data.failureList && result.data.failureList.length > 0" class="mb-6">
+                    <h4 class="font-semibold text-red-700 mb-3">
+                        <svg class="w-5 h-5 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                        </svg>
+                        Failed to Assign
+                    </h4>
+                    <div class="max-h-60 overflow-y-auto space-y-2">
+                        <template x-for="item in result.data.failureList" :key="item.employeeId">
+                            <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                                <div>
+                                    <div class="font-medium text-gray-900" x-text="item.employeeName"></div>
+                                    <div class="text-sm text-red-600" x-text="item.errorMessage"></div>
+                                </div>
+                                <span class="text-xs px-2 py-1 bg-red-100 text-red-800 rounded" x-text="item.errorType"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Skipped List -->
+                <div x-show="result.data.skippedList && result.data.skippedList.length > 0" class="mb-6">
+                    <h4 class="font-semibold text-yellow-700 mb-3">
+                        <svg class="w-5 h-5 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                        </svg>
+                        Skipped
+                    </h4>
+                    <div class="max-h-60 overflow-y-auto space-y-2">
+                        <template x-for="item in result.data.skippedList" :key="item.employeeId">
+                            <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                                <div>
+                                    <div class="font-medium text-gray-900" x-text="item.employeeName"></div>
+                                    <div class="text-sm text-yellow-600" x-text="item.skipReason"></div>
+                                </div>
+                                <span class="text-xs text-gray-500" x-text="item.currentShiftName"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Close Button -->
+                <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                    <button @click="closeResult()" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 border border-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-all">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        </svg>
+                        Refresh & Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // Extract shift patterns from hidden data container
+        function extractShiftPatterns() {
+            const container = document.getElementById('shiftPatternsData');
+            const items = container.querySelectorAll('div[data-id]');
+            return Array.from(items).map(item => ({
+                id: parseInt(item.dataset.id),
+                name: item.dataset.name,
+                code: item.dataset.code,
+                description: item.dataset.description
+            }));
+        }
+
+        const shiftPatternsData = extractShiftPatterns();
+
+        function bulkAssignData() {
+            return {
+                shiftPatterns: shiftPatternsData,
+                filters: {
+                    departmentId: /*[[${filterDepartmentId}]]*/ '',
+                    shiftPatternId: /*[[${filterShiftPatternId}]]*/ '',
+                    status: /*[[${filterStatus}]]*/ ''
+                },
+                employees: [],
+                selectedEmployeeIds: [],
+                allSelected: false,
+                loading: false,
+                submitting: false,
+                assignment: {
+                    shiftPatternId: '',
+                    effectiveFrom: new Date().toISOString().split('T')[0],
+                    reason: '',
+                    notes: ''
+                },
+                result: {
+                    show: false,
+                    data: {}
+                },
+
+                initData() {
+                    this.applyFilters();
+                },
+
+                get selectedCount() {
+                    return this.selectedEmployeeIds.length;
+                },
+
+                isSelected(id) {
+                    return this.selectedEmployeeIds.includes(id);
+                },
+
+                toggleAll() {
+                    if (this.allSelected) {
+                        this.selectedEmployeeIds = this.employees.map(e => e.id);
+                    } else {
+                        this.selectedEmployeeIds = [];
+                    }
+                },
+
+                async applyFilters() {
+                    console.log('[applyFilters] Starting fetch...');
+                    this.loading = true;
+                    try {
+                        const params = new URLSearchParams();
+                        if (this.filters.departmentId) params.append('departmentId', this.filters.departmentId);
+                        if (this.filters.shiftPatternId) params.append('currentShiftPatternId', this.filters.shiftPatternId);
+
+                        const url = `/employees/shift-assign-bulk/employees?${params}`;
+                        console.log('[applyFilters] Fetching from:', url);
+                        const response = await fetch(url);
+                        const data = await response.json();
+                        console.log('[applyFilters] Response data:', data);
+                        this.employees = data;
+                        console.log('[applyFilters] Employees updated:', this.employees);
+                        this.selectedEmployeeIds = [];
+                        this.allSelected = false;
+                    } catch (error) {
+                        console.error('Error loading employees:', error);
+                        alert('Failed to load employees');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                clearFilters() {
+                    this.filters = { departmentId: '', shiftPatternId: '', status: '' };
+                    this.applyFilters();
+                },
+
+                selectedShiftPattern() {
+                    return this.shiftPatterns.find(p => p.id == this.assignment.shiftPatternId);
+                },
+
+                isRetroactive() {
+                    return this.assignment.effectiveFrom && new Date(this.assignment.effectiveFrom) < new Date().setHours(0,0,0,0);
+                },
+
+                getRetroactiveWarning() {
+                    const days = Math.floor((new Date() - new Date(this.assignment.effectiveFrom)) / (1000 * 60 * 60 * 24));
+                    return `You are assigning a shift ${days} days in the past. This will be a retroactive assignment.`;
+                },
+
+                async submitAssignment() {
+                    // Validation
+                    if (this.selectedEmployeeIds.length === 0) {
+                        alert('Please select at least one employee');
+                        return;
+                    }
+                    if (!this.assignment.shiftPatternId) {
+                        alert('Please select a shift pattern');
+                        return;
+                    }
+                    if (!this.assignment.effectiveFrom) {
+                        alert('Please select effective date');
+                        return;
+                    }
+                    if (!this.assignment.reason) {
+                        alert('Please enter a reason');
+                        return;
+                    }
+
+                    // Retroactive confirmation
+                    if (this.isRetroactive()) {
+                        if (!confirm(`You are assigning a shift in the past (${this.getRetroactiveWarning()})\n\nAre you sure you want to continue?`)) {
+                            return;
+                        }
+                    }
+
+                    this.submitting = true;
+                    try {
+                        const response = await fetch('/employees/shift-assign-bulk/execute', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                employeeIds: this.selectedEmployeeIds,
+                                shiftPatternId: this.assignment.shiftPatternId,
+                                effectiveFrom: this.assignment.effectiveFrom,
+                                reason: this.assignment.reason,
+                                notes: this.assignment.notes
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            // Only update client-side if server responded successfully
+                            // Update employee data directly on client-side for those that succeeded
+                            if (result.successList && result.successList.length > 0) {
+                                const newShiftName = this.selectedShiftPattern()?.name;
+                                const newShiftId = this.assignment.shiftPatternId;
+                                const newShiftColor = this.selectedShiftPattern()?.color || '#3B82F6';
+
+                                result.successList.forEach(successItem => {
+                                    const empIndex = this.employees.findIndex(e => e.id === successItem.employeeId);
+                                    if (empIndex !== -1) {
+                                        // Only update if server actually saved the change
+                                        this.employees[empIndex].currentShiftPatternId = parseInt(newShiftId);
+                                        this.employees[empIndex].currentShiftPatternName = newShiftName;
+                                        this.employees[empIndex].currentShiftColor = newShiftColor;
+                                        console.log('[submitAssignment] Updated employee', successItem.employeeId, 'to', newShiftName);
+                                    }
+                                });
+                            }
+
+                            this.result.data = result;
+                            this.result.show = true;
+
+                            // Reset form if success
+                            if (result.failureCount === 0 && result.skippedCount === 0) {
+                                this.assignment = {
+                                    shiftPatternId: '',
+                                    effectiveFrom: new Date().toISOString().split('T')[0],
+                                    reason: '',
+                                    notes: ''
+                                };
+                                this.selectedEmployeeIds = [];
+                                this.allSelected = false;
+                            }
+                        } else {
+                            alert('Failed to execute assignment: ' + (result.message || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        console.error('Error submitting assignment:', error);
+                        alert('Failed to submit assignment');
+                    } finally {
+                        this.submitting = false;
+                    }
+                },
+
+                closeResult() {
+                    console.log('[closeResult] Closing modal');
+                    this.result.show = false;
+                    this.result.data = {};
+                    // Data already updated locally after assignment, no need to fetch again
+                },
+
+                getInitials(name) {
+                    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                },
+
+                formatDate(dateStr) {
+                    return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                }
+            };
+        }
+    </script>
+</div>
+
+</html>
