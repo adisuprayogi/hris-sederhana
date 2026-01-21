@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="max-w-6xl mx-auto">
+        <!-- Page Header -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">Persetujuan Cuti - HR/Admin</h1>
+            <p class="text-sm text-gray-500">Daftar pengajuan cuti yang menunggu approval HR/Admin</p>
+        </div>
+
+        <!-- Pending Requests -->
+        <div class="space-y-4">
+            <div th:if="${requests == null or requests.isEmpty()}" class="bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
+                <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 013 9.749c0-5.592 3.824-10.29 9-11.622 5.176 1.332 9 6.03 9 11.622m-9 5.25v.008v.008v-.008z" />
+                </svg>
+                <p class="text-gray-500">Tidak ada pengajuan cuti yang menunggu approval</p>
+            </div>
+
+            <div th:each="req : ${requests}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                    <!-- Employee Info -->
+                    <div class="flex-1">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                                <span class="text-lg font-bold text-green-600" th:text="${req.employee != null ? req.employee.fullName.substring(0, 1).toUpperCase() : 'E'}">E</span>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-900" th:text="${req.employee != null ? req.employee.fullName : '-'}">Employee</h3>
+                                <p class="text-sm text-gray-500" th:text="${req.employee != null and req.employee.position != null ? req.employee.position.name : '-'}">Position</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Tipe Cuti</p>
+                                <p class="text-sm font-medium text-gray-900" th:text="${req.leaveType.displayName}"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Durasi</p>
+                                <p class="text-sm font-medium text-gray-900" th:text="${req.durationDays + ' hari'}"></p>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <p class="text-xs text-gray-500 mb-1">Tanggal</p>
+                            <p class="text-sm text-gray-900">
+                                <span th:text="${#temporals.format(req.startDate, 'dd MMM yyyy')}"></span>
+                                <span th:if="${!req.startDate.equals(req.endDate)}" th:text="' - ' + ${#temporals.format(req.endDate, 'dd MMM yyyy')}"></span>
+                            </p>
+                        </div>
+                        <div class="mt-3">
+                            <p class="text-xs text-gray-500 mb-1">Alasan</p>
+                            <p class="text-sm text-gray-700" th:text="${req.reason}"></p>
+                        </div>
+                        <!-- Supervisor Approval Info -->
+                        <div th:if="${req.supervisor != null}" class="mt-4 pt-4 border-t border-gray-200">
+                            <p class="text-xs text-gray-500 mb-1">Disetujui oleh Supervisor</p>
+                            <p class="text-sm text-gray-900" th:text="${req.supervisor.fullName}"></p>
+                            <p th:if="${req.supervisorApprovalNote != null}" class="text-xs text-gray-600 mt-1" th:text="'Catatan: ' + ${req.supervisorApprovalNote}"></p>
+                        </div>
+                    </div>
+
+                    <!-- Approval Actions -->
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button th:onclick="'approveLeave(' + ${req.id} + ')'" class="px-4 py-2 bg-green-600 border border-green-600 rounded-lg text-sm font-medium text-white hover:bg-green-700 transition-all">
+                            Setujui
+                        </button>
+                        <button th:onclick="'rejectLeave(' + ${req.id} + ')'" class="px-4 py-2 bg-red-600 border border-red-600 rounded-lg text-sm font-medium text-white hover:bg-red-700 transition-all">
+                            Tolak
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function approveLeave(id) {
+        const note = prompt('Tambahkan catatan (opsional):');
+        if (note !== null) {
+            const formData = new FormData();
+            formData.append('note', note || '');
+            fetch('/leave/' + id + '/approve-hr', {
+                method: 'POST',
+                body: formData
+            }).then(r => {
+                if (r.ok) window.location.reload();
+                else r.text().then(t => alert('Gagal: ' + t));
+            });
+        }
+    }
+
+    function rejectLeave(id) {
+        const reason = prompt('Alasan penolakan:');
+        if (reason) {
+            const formData = new FormData();
+            formData.append('reason', reason);
+            fetch('/leave/' + id + '/reject-hr', {
+                method: 'POST',
+                body: formData
+            }).then(r => {
+                if (r.ok) window.location.reload();
+                else r.text().then(t => alert('Gagal: ' + t));
+            });
+        }
+    }
+    </script>
+</div>
+</html>

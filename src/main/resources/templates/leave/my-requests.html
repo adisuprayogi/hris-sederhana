@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="max-w-5xl mx-auto" x-data="leaveRequests()">
+        <!-- Page Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Pengajuan Cuti</h1>
+                <p class="text-sm text-gray-500">Ajukan dan pantau permintaan cuti Anda</p>
+            </div>
+            <button @click="showForm = true" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 border border-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-all">
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Ajukan Cuti
+            </button>
+        </div>
+
+        <!-- Leave Request Form Modal -->
+        <div x-show="showForm" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-md" @click.outside="showForm = false">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-900">Ajukan Cuti</h2>
+                </div>
+                <form @submit.prevent="submitRequest" class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Cuti <span class="text-red-500">*</span></label>
+                        <select x-model="form.leaveType" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Pilih Tipe Cuti</option>
+                            <option th:each="type : ${leaveTypes}" th:value="${type.name()}" th:text="${type.displayName}"></option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai <span class="text-red-500">*</span></label>
+                            <input type="date" x-model="form.startDate" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Selesai <span class="text-red-500">*</span></label>
+                            <input type="date" x-model="form.endDate" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Alasan <span class="text-red-500">*</span></label>
+                        <textarea x-model="form.reason" rows="3" required placeholder="Jelaskan alasan permintaan cuti..."
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" @click="showForm = false" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all">
+                            Batal
+                        </button>
+                        <button type="submit" :disabled="submitting" class="flex-1 px-4 py-2 bg-blue-600 border border-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-all disabled:opacity-50">
+                            <span x-show="!submitting">Kirim</span>
+                            <span x-show="submitting">Mengirim...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Requests List -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Tipe</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Tanggal</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Durasi</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Alasan</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Approval</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr th:if="${requests == null or requests.isEmpty()}">
+                            <td colspan="6" class="px-6 py-12 text-center">
+                                <div class="flex flex-col items-center">
+                                    <svg class="w-12 h-12 text-gray-300 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <p class="text-sm text-gray-500">Belum ada pengajuan cuti</p>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:each="req : ${requests}" class="hover:bg-gray-50">
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900" th:text="${req.leaveType.displayName}"></div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">
+                                    <span th:text="${#temporals.format(req.startDate, 'dd MMM yyyy')}"></span>
+                                    <span th:if="${!req.startDate.equals(req.endDate)}" th:text="' - ' + ${#temporals.format(req.endDate, 'dd MMM yyyy')}"></span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900" th:text="${req.durationDays + ' hari'}"></div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900 max-w-xs truncate" th:text="${req.reason}"></div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span th:class="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' +
+                                    ${req.status.name() == 'PENDING_SUPERVISOR' ? 'bg-amber-100 text-amber-800' :
+                                      req.status.name() == 'PENDING_HR' ? 'bg-blue-100 text-blue-800' :
+                                      req.status.name() == 'APPROVED' ? 'bg-green-100 text-green-800' :
+                                      'bg-red-100 text-red-800'}">
+                                    <span th:text="${req.status.displayName}"></span>
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm">
+                                <div th:if="${req.status.name() == 'PENDING_SUPERVISOR' or req.status.name() == 'PENDING_HR'}" class="text-gray-500">Menunggu approval</div>
+                                <div th:if="${req.status.name() == 'APPROVED'}" class="text-green-600">Disetujui</div>
+                                <div th:if="${req.status.name().startsWith('REJECTED')}" class="text-red-600">
+                                    Ditolak: <span th:text="${req.supervisorApprovalNote != null ? req.supervisorApprovalNote : req.hrApprovalNote}"></span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div th:if="${success}" class="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700" th:text="${success}"></div>
+        <div th:if="${error}" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700" th:text="${error}"></div>
+    </div>
+
+    <script>
+    function leaveRequests() {
+        return {
+            showForm: false,
+            submitting: false,
+            form: {
+                leaveType: '',
+                startDate: '',
+                endDate: '',
+                reason: ''
+            },
+
+            async submitRequest() {
+                if (this.submitting) return;
+                this.submitting = true;
+
+                try {
+                    const formData = new FormData();
+                    formData.append('leaveType', this.form.leaveType);
+                    formData.append('startDate', this.form.startDate);
+                    formData.append('endDate', this.form.endDate);
+                    formData.append('reason', this.form.reason);
+
+                    const response = await fetch('/leave/submit', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        const text = await response.text();
+                        alert('Gagal mengajukan cuti: ' + text);
+                    }
+                } catch (e) {
+                    alert('Terjadi kesalahan: ' + e.message);
+                } finally {
+                    this.submitting = false;
+                }
+            }
+        };
+    }
+    </script>
+</div>
+</html>

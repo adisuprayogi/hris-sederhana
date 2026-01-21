@@ -17,7 +17,14 @@ import java.util.Optional;
 
 /**
  * Service untuk LeaveRequest Entity
- * Menangani logika bisnis untuk pengajuan cuti
+ * Menangani logika bisnis untuk pengajuan cuti dengan 2-level approval
+ *
+ * Approval Flow:
+ * 1. PENDING_SUPERVISOR - Waiting for supervisor approval
+ * 2. PENDING_HR - Waiting for HR/Admin approval
+ * 3. APPROVED - Fully approved
+ * 4. REJECTED_BY_SUPERVISOR - Rejected by supervisor
+ * 5. REJECTED_BY_HR - Rejected by HR
  */
 @Service
 @RequiredArgsConstructor
@@ -27,6 +34,11 @@ public class LeaveRequestService {
     private final LeaveRequestRepository leaveRequestRepository;
     private final LeaveBalanceService leaveBalanceService;
     private final ApprovalService approvalService;
+    private final EmployeeService employeeService;
+
+    // =====================================================
+    // QUERY METHODS
+    // =====================================================
 
     /**
      * Get all leave requests
@@ -57,17 +69,33 @@ public class LeaveRequestService {
     }
 
     /**
-     * Get pending leave requests for approver
+     * Get pending supervisor requests (for supervisor approval page)
      */
-    public List<LeaveRequest> getPendingRequestsForApprover(Long approverId) {
-        return leaveRequestRepository.findPendingRequestsForApprover(approverId);
+    public List<LeaveRequest> getPendingSupervisorRequests() {
+        return leaveRequestRepository.findPendingSupervisorRequests();
     }
+
+    /**
+     * Get pending HR requests (for HR approval page)
+     */
+    public List<LeaveRequest> getPendingHrRequests() {
+        return leaveRequestRepository.findPendingHrRequests();
+    }
+
+    // =====================================================
+    // CREATE/UPDATE METHODS
+    // =====================================================
 
     /**
      * Create new leave request
      */
     @Transactional
     public LeaveRequest createLeaveRequest(LeaveRequest leaveRequest) {
+        Employee employee = leaveRequest.getEmployee();
+        if (employee == null || employee.getId() == null) {
+            throw new IllegalArgumentException("Employee is required");
+        }
+
         // Validate dates
         if (leaveRequest.getStartDate().isAfter(leaveRequest.getEndDate())) {
             throw new IllegalArgumentException("Start date must be before or equal to end date");
@@ -75,7 +103,7 @@ public class LeaveRequestService {
 
         // Check for overlapping leave requests
         List<LeaveRequest> overlapping = leaveRequestRepository.findOverlappingLeaveRequests(
-                leaveRequest.getEmployee().getId(),
+                employee.getId(),
                 leaveRequest.getStartDate(),
                 leaveRequest.getEndDate()
         );
@@ -93,14 +121,14 @@ public class LeaveRequestService {
 
             // Check if employee has sufficient balance
             var balanceOpt = leaveBalanceService.getLeaveBalance(
-                    leaveRequest.getEmployee().getId(), year);
+                    employee.getId(), year);
 
             if (balanceOpt.isEmpty()) {
                 // Initialize leave balance if not exists
                 leaveBalanceService.initializeLeaveBalance(
-                        leaveRequest.getEmployee().getId(), year);
+                        employee.getId(), year);
                 balanceOpt = leaveBalanceService.getLeaveBalance(
-                        leaveRequest.getEmployee().getId(), year);
+                        employee.getId(), year);
             }
 
             if (!balanceOpt.get().hasSufficientBalance(duration)) {
@@ -111,18 +139,16 @@ public class LeaveRequestService {
             }
         }
 
-        // Set current approver
-        Employee currentApprover = approvalService.getApprover(
-                leaveRequest.getEmployee(),
-                leaveRequest
-        );
-        leaveRequest.setCurrentApprover(currentApprover);
+        // Determine initial status based on approval level needed
+        Employee requester = employeeService.getEmployeeById(employee.getId());
+        String initialStatus = approvalService.getInitialStatus(requester);
+        leaveRequest.setStatus(LeaveRequestStatus.valueOf(initialStatus));
 
         // Save leave request
         LeaveRequest saved = leaveRequestRepository.save(leaveRequest);
-        log.info("Created leave request {} for employee {} from {} to {}",
+        log.info("Created leave request {} for employee {} from {} to {} with status {}",
                 saved.getId(), saved.getEmployee().getId(),
-                saved.getStartDate(), saved.getEndDate());
+                saved.getStartDate(), saved.getEndDate(), saved.getStatus());
 
         return saved;
     }
@@ -168,29 +194,109 @@ public class LeaveRequestService {
         return updated;
     }
 
+    // =====================================================
+    // APPROVAL METHODS (2-LEVEL)
+    // =====================================================
+
     /**
-     * Approve leave request
+     * Approve as supervisor
      */
     @Transactional
-    public LeaveRequest approveLeaveRequest(Long id, Employee approver) {
+    public LeaveRequest approveBySupervisor(Long id, Long supervisorId, String note) {
         LeaveRequest leaveRequest = leaveRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Leave request not found with id: " + id));
 
-        if (!leaveRequest.isPending()) {
+        if (leaveRequest.getStatus() != LeaveRequestStatus.PENDING_SUPERVISOR) {
             throw new IllegalArgumentException(
-                    "Leave request is not pending"
+                    "Leave request is not pending supervisor approval"
             );
         }
 
-        // Check if approver is authorized
-        if (!approvalService.canApprove(approver, leaveRequest.getEmployee())) {
+        Employee supervisor = employeeService.getEmployeeById(supervisorId);
+        if (supervisor == null) {
+            throw new IllegalArgumentException("Supervisor not found");
+        }
+
+        // Validate approver
+        if (!approvalService.canApprove(leaveRequest.getEmployee(),
+                "PENDING_SUPERVISOR", supervisor)) {
             throw new IllegalArgumentException(
                     "You are not authorized to approve this leave request"
             );
         }
 
-        // Approve the request
-        leaveRequest.approve(approver);
+        // Approve at supervisor level (moves to PENDING_HR)
+        leaveRequest.approveBySupervisor(supervisor, note);
+
+        LeaveRequest approved = leaveRequestRepository.save(leaveRequest);
+        log.info("Approved leave request {} by supervisor {}", id, supervisorId);
+        return approved;
+    }
+
+    /**
+     * Reject as supervisor
+     */
+    @Transactional
+    public LeaveRequest rejectBySupervisor(Long id, Long supervisorId, String reason) {
+        LeaveRequest leaveRequest = leaveRequestRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Leave request not found with id: " + id));
+
+        if (leaveRequest.getStatus() != LeaveRequestStatus.PENDING_SUPERVISOR) {
+            throw new IllegalArgumentException(
+                    "Leave request is not pending supervisor approval"
+            );
+        }
+
+        Employee supervisor = employeeService.getEmployeeById(supervisorId);
+        if (supervisor == null) {
+            throw new IllegalArgumentException("Supervisor not found");
+        }
+
+        // Validate approver
+        if (!approvalService.canApprove(leaveRequest.getEmployee(),
+                "PENDING_SUPERVISOR", supervisor)) {
+            throw new IllegalArgumentException(
+                    "You are not authorized to reject this leave request"
+            );
+        }
+
+        // Reject at supervisor level
+        leaveRequest.rejectBySupervisor(supervisor, reason);
+
+        LeaveRequest rejected = leaveRequestRepository.save(leaveRequest);
+        log.info("Rejected leave request {} by supervisor {}. Reason: {}", id, supervisorId, reason);
+        return rejected;
+    }
+
+    /**
+     * Approve as HR (final approval)
+     */
+    @Transactional
+    public LeaveRequest approveByHr(Long id, Long hrId, String note) {
+        LeaveRequest leaveRequest = leaveRequestRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Leave request not found with id: " + id));
+
+        if (leaveRequest.getStatus() != LeaveRequestStatus.PENDING_HR) {
+            throw new IllegalArgumentException(
+                    "Leave request is not pending HR approval"
+            );
+        }
+
+        Employee hr = employeeService.getEmployeeById(hrId);
+        if (hr == null) {
+            throw new IllegalArgumentException("HR not found");
+        }
+
+        // Validate approver
+        if (!approvalService.canApprove(leaveRequest.getEmployee(),
+                "PENDING_HR", hr)) {
+            throw new IllegalArgumentException(
+                    "You are not authorized to approve this leave request"
+            );
+        }
+
+        // Approve at HR level (final approval)
+        leaveRequest.approveByHr(hr, note);
 
         // Deduct balance if applicable
         if (leaveBalanceService.requiresBalanceDeduction(leaveRequest.getLeaveType())) {
@@ -206,41 +312,51 @@ public class LeaveRequestService {
         }
 
         LeaveRequest approved = leaveRequestRepository.save(leaveRequest);
-        log.info("Approved leave request {} by {}", id, approver.getId());
+        log.info("Approved leave request {} by HR {}", id, hrId);
         return approved;
     }
 
     /**
-     * Reject leave request
+     * Reject as HR
      */
     @Transactional
-    public LeaveRequest rejectLeaveRequest(Long id, Employee approver, String reason) {
+    public LeaveRequest rejectByHr(Long id, Long hrId, String reason) {
         LeaveRequest leaveRequest = leaveRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Leave request not found with id: " + id));
 
-        if (!leaveRequest.isPending()) {
+        if (leaveRequest.getStatus() != LeaveRequestStatus.PENDING_HR) {
             throw new IllegalArgumentException(
-                    "Leave request is not pending"
+                    "Leave request is not pending HR approval"
             );
         }
 
-        // Check if approver is authorized
-        if (!approvalService.canApprove(approver, leaveRequest.getEmployee())) {
+        Employee hr = employeeService.getEmployeeById(hrId);
+        if (hr == null) {
+            throw new IllegalArgumentException("HR not found");
+        }
+
+        // Validate approver
+        if (!approvalService.canApprove(leaveRequest.getEmployee(),
+                "PENDING_HR", hr)) {
             throw new IllegalArgumentException(
                     "You are not authorized to reject this leave request"
             );
         }
 
-        // Reject the request
-        leaveRequest.reject(approver, reason);
+        // Reject at HR level
+        leaveRequest.rejectByHr(hr, reason);
 
         LeaveRequest rejected = leaveRequestRepository.save(leaveRequest);
-        log.info("Rejected leave request {} by {}. Reason: {}", id, approver.getId(), reason);
+        log.info("Rejected leave request {} by HR {}. Reason: {}", id, hrId, reason);
         return rejected;
     }
 
+    // =====================================================
+    // CANCEL METHODS
+    // =====================================================
+
     /**
-     * Cancel leave request (by employee)
+     * Cancel leave request (by employee) - soft delete
      */
     @Transactional
     public LeaveRequest cancelLeaveRequest(Long id, Employee employee) {
@@ -262,7 +378,7 @@ public class LeaveRequestService {
         }
 
         // Soft delete
-        leaveRequest.setDeletedAt(java.time.LocalDateTime.now());
+        leaveRequest.setDeletedAt(LocalDateTime.now());
         leaveRequestRepository.save(leaveRequest);
 
         log.info("Cancelled leave request {} by employee {}", id, employee.getId());
@@ -297,12 +413,16 @@ public class LeaveRequestService {
         }
 
         // Soft delete
-        leaveRequest.setDeletedAt(java.time.LocalDateTime.now());
+        leaveRequest.setDeletedAt(LocalDateTime.now());
         leaveRequestRepository.save(leaveRequest);
 
         log.info("Reimbursed and cancelled leave request {}", id);
         return leaveRequest;
     }
+
+    // =====================================================
+    // UTILITY METHODS
+    // =====================================================
 
     /**
      * Check if employee is on leave on specific date
@@ -318,19 +438,29 @@ public class LeaveRequestService {
      * Get leave statistics
      */
     public LeaveRequestStats getLeaveRequestStats() {
-        long pending = leaveRequestRepository.countByStatusAndDeletedAtIsNull(LeaveRequestStatus.PENDING);
-        long approved = leaveRequestRepository.countByStatusAndDeletedAtIsNull(LeaveRequestStatus.APPROVED);
-        long rejected = leaveRequestRepository.countByStatusAndDeletedAtIsNull(LeaveRequestStatus.REJECTED);
+        long pendingSupervisor = leaveRequestRepository.countByStatusAndDeletedAtIsNull(
+                LeaveRequestStatus.PENDING_SUPERVISOR);
+        long pendingHr = leaveRequestRepository.countByStatusAndDeletedAtIsNull(
+                LeaveRequestStatus.PENDING_HR);
+        long approved = leaveRequestRepository.countByStatusAndDeletedAtIsNull(
+                LeaveRequestStatus.APPROVED);
+        long rejectedSupervisor = leaveRequestRepository.countByStatusAndDeletedAtIsNull(
+                LeaveRequestStatus.REJECTED_BY_SUPERVISOR);
+        long rejectedHr = leaveRequestRepository.countByStatusAndDeletedAtIsNull(
+                LeaveRequestStatus.REJECTED_BY_HR);
 
-        return new LeaveRequestStats(pending, approved, rejected);
+        return new LeaveRequestStats(pendingSupervisor, pendingHr, approved,
+                rejectedSupervisor, rejectedHr);
     }
 
     /**
      * DTO for leave request statistics
      */
     public record LeaveRequestStats(
-            long pendingCount,
+            long pendingSupervisorCount,
+            long pendingHrCount,
             long approvedCount,
-            long rejectedCount
+            long rejectedBySupervisorCount,
+            long rejectedByHrCount
     ) {}
 }

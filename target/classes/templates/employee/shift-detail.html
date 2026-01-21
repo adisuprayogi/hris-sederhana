@@ -160,7 +160,6 @@
 
         // Get status badge HTML
         function getStatusBadge(day) {
-            console.log('getStatusBadge for', day.date, ': isWorkingDay=', day.isWorkingDay, 'isWeeklyLeave=', day.isWeeklyLeave, 'isHoliday=', day.isHoliday);
             if (day.isHoliday) {
                 return `<span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700">
                     ${day.holidayName || 'Holiday'}

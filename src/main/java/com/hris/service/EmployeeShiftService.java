@@ -279,9 +279,6 @@ public class EmployeeShiftService {
             }
         }
 
-        log.info("Day {}: isWorkingDay={}, isWeeklyLeave={}, hasWorkingHours={}, shiftName={}",
-            date, assignment.isWorkingDay(), isWeeklyLeave, workingHours != null, shiftName);
-
         return new DayScheduleDTO(
                 date.toString(),
                 getDayName(date, date.getDayOfWeek()),

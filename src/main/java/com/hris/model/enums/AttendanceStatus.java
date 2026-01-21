@@ -8,10 +8,12 @@ import lombok.Getter;
 @Getter
 public enum AttendanceStatus {
     PRESENT("Hadir"),
-    LATE("Telat"),
+    LATE("Terlambat"),
     LEAVE("Izin"),
     SICK("Sakit"),
-    ABSENT("Alpha");
+    ABSENT("Alpha"),
+    EARLY_LEAVE("Pulang Awal"),
+    WFH("WFH");
 
     private final String displayName;
 

@@ -143,6 +143,11 @@ public class CompanyService {
         existing.setContractLecturerPayrollCutoffDate(company.getContractLecturerPayrollCutoffDate());
         existing.setContractLecturerPayrollPaymentDate(company.getContractLecturerPayrollPaymentDate());
 
+        // Geotag Settings (Office Location for Attendance Validation)
+        existing.setOfficeLatitude(company.getOfficeLatitude());
+        existing.setOfficeLongitude(company.getOfficeLongitude());
+        existing.setAttendanceLocationRadius(company.getAttendanceLocationRadius());
+
         // Note: logo_path and stamp_path are updated separately via upload methods
 
         Company saved = companyRepository.save(existing);

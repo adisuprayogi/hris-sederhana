@@ -2,6 +2,7 @@
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/LecturerSalaryDetail.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/EmployeeRepository.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/enums/LecturerEmploymentStatus.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/OvertimeRequestController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/CompanyController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/EmployeeShiftSchedule.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/config/SecurityConfig.java
@@ -23,6 +24,7 @@
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/TeachingAttendanceStagingRepository.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/TeachingAttendanceStaging.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/WorkingHoursRepository.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/service/OvertimeRequestService.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/service/LeaveBalanceService.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/PositionRepository.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/CompanyRepository.java
@@ -35,7 +37,9 @@
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/service/LeaveTypeSettingService.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/enums/LecturerSalaryStatus.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/enums/MaritalStatus.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/WfhRequestController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/service/ShiftPackageService.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/LeaveRequestController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/service/LecturerProfileService.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/SalaryHistoryController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/ContractHistory.java
@@ -44,6 +48,7 @@
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/service/LeaveRequestService.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/DepartmentRepository.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/enums/RoleType.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/AttendanceRecord.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/AuthController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/config/WebConfig.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/EmployeeRoleRepository.java
@@ -55,21 +60,27 @@
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/config/GlobalModelAttributes.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/EmployeeJobHistory.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/LeaveTypeSettingController.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/service/AttendanceService.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/service/PositionService.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/JobHistoryController.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/service/WfhRequestService.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/EmployeeShiftController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/FileController.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/WfhRequestRepository.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/security/CustomUserDetails.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/LoginDebugController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/dto/BulkAssignShiftResult.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/ShiftPatternRepository.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/WfhRequest.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/ShiftPackageRepository.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/enums/SalaryComponentType.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/AttendanceController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/Employee.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/LecturerSalaryController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/LeaveTypeSetting.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/dto/LoginRequestDto.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/enums/SalaryChangeType.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/AttendanceRecordRepository.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/ShiftPattern.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/Company.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/LecturerSalaryRateController.java
@@ -80,6 +91,7 @@
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/security/CustomUserDetailsService.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/EmployeeShiftSettingRepository.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/enums/PayrollStatus.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/dto/ClockInRequest.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/Department.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/HolidayController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/enums/ChangeType.java
@@ -94,6 +106,7 @@
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/WorkingHoursController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/DashboardController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/LeaveBalance.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/enums/RequestStatus.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/EmployeeShiftSetting.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/LeaveTypeSettingRepository.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/enums/PayrollPeriodType.java
@@ -107,6 +120,7 @@
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/enums/LeaveType.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/enums/ActivityType.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/BaseEntity.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/OvertimeRequest.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/EmployeeRole.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/PasswordEncoderTestController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/LeaveBalanceRepository.java
@@ -122,6 +136,7 @@
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/dto/BulkAssignShiftRequest.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/service/LecturerSalaryService.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/PublicationStaging.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/OvertimeRequestRepository.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/LecturerSalaryRate.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/service/EmployeeJobHistoryService.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/LecturerSalaryRateRepository.java
@@ -129,6 +144,7 @@
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/ThesisExaminationStaging.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/SalaryHistory.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/enums/CompanyType.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/dto/ClockOutRequest.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/EmployeeController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/SalaryHistoryRepository.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/enums/GenderRestriction.java

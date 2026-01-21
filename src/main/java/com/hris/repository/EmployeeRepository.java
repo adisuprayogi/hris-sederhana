@@ -159,4 +159,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
            "FROM EmployeeRole er " +
            "WHERE er.employeeId = :employeeId AND er.role = :role AND er.deletedAt IS NULL")
     boolean hasRole(@Param("employeeId") Long employeeId, @Param("role") String role);
+
+    /**
+     * Find all active employees ordered by full name
+     */
+    @Query("SELECT e FROM Employee e WHERE e.deletedAt IS NULL ORDER BY e.fullName ASC")
+    List<Employee> findAllByDeletedAtIsNullOrderByFullNameAsc();
 }

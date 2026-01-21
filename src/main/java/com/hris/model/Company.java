@@ -4,6 +4,7 @@ import com.hris.model.enums.CompanyType;
 import com.hris.model.enums.PayrollPeriodType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name = "companies")
 @Data
+@Builder
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
@@ -121,6 +123,33 @@ public class Company extends AuditableEntity {
 
     @Column(name = "stamp_path")
     private String stampPath;
+
+    // =====================================================
+    // OFFICE LOCATION (ATTENDANCE VALIDATION)
+    // =====================================================
+
+    /**
+     * Office latitude for attendance location validation
+     * Used when employee cannot WFH (must clock in at office)
+     */
+    @Column(name = "office_latitude", precision = 10, scale = 8)
+    private java.math.BigDecimal officeLatitude;
+
+    /**
+     * Office longitude for attendance location validation
+     * Used when employee cannot WFH (must clock in at office)
+     */
+    @Column(name = "office_longitude", precision = 11, scale = 8)
+    private java.math.BigDecimal officeLongitude;
+
+    /**
+     * Attendance location radius in meters
+     * Maximum 150 meters for clock-in validation
+     * Employee must be within this radius from office location to clock in
+     */
+    @Column(name = "attendance_location_radius")
+    @Builder.Default
+    private Integer attendanceLocationRadius = 100;
 
     // =====================================================
     // KONFIGURASI JAM KERJA

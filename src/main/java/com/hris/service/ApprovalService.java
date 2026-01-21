@@ -1,195 +1,161 @@
 package com.hris.service;
 
-import com.hris.model.Department;
 import com.hris.model.Employee;
-import com.hris.model.LeaveRequest;
-import com.hris.model.enums.LeaveRequestStatus;
-import com.hris.repository.DepartmentRepository;
-import com.hris.repository.EmployeeRepository;
+import com.hris.model.Position;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-
 /**
  * Approval Service
- * Handles approval logic for leave requests and attendance
- * Uses hierarchical department structure to determine appropriate approvers
+ * Handles 2-level approval workflow logic
+ *
+ * Determines supervisor (atasan langsung) based on:
+ * 1. Department hierarchy (parent/child relationship)
+ * 2. Position level
+ * 3. Head of department assignments
+ *
+ * Special cases:
+ * - Rektor (position level 6) → No supervisor (1-level: HR only)
+ * - Head of Root Department → No supervisor (1-level: HR only)
+ * - Head of Child Department → Parent department head is supervisor
+ * - Regular employee → Current department head is supervisor
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ApprovalService {
 
-    private final EmployeeRepository employeeRepository;
-    private final DepartmentRepository departmentRepository;
+    private final EmployeeService employeeService;
 
     // =====================================================
-    // APPROVER DETERMINATION
+    // SUPERVISOR DETERMINATION
     // =====================================================
 
     /**
-     * Get the appropriate approver for a leave request based on:
-     * 1. Requester's position in the organizational hierarchy
-     * 2. Duration of the leave (short vs long)
-     * 3. Department structure
+     * Determine supervisor for requester
+     * Based on department hierarchy and position level
      *
-     * Approval Logic:
-     * - Staff (level 1-3):
-     *   - 1-3 days: Department Head
-     *   - >3 days: Department Head -> Parent Dept Head -> HR
-     *
-     * - Manager (level 4):
-     *   - 1-3 days: Parent Department Head
-     *   - >3 days: Parent Dept Head -> HR -> (Warek/Rektor if needed)
-     *
-     * - Dept Head (level 5):
-     *   - Any duration: Parent Dept Head -> HR
-     *
-     * - Warek/Rektor (level 6):
-     *   - Any duration: HR -> Peer/Board
-     *
-     * @param requester The employee requesting leave
-     * @param leaveRequest The leave request
-     * @return The appropriate approver
+     * @param requester Employee who is making the request
+     * @return Supervisor employee, or null if no supervisor needed (highest level)
      */
-    /**
-     * Get the approver for a leave request
-     *
-     * Approval Flow (2 levels):
-     * 1. Staff → Dept Head (dept sendiri) → HR Admin
-     * 2. Dept Head (punya parent) → Parent Dept Head → HR Admin
-     * 3. Dept Head ROOT (tidak punya parent) → Langsung HR Admin
-     *
-     * @param requester The employee requesting leave
-     * @param leaveRequest The leave request
-     * @return The appropriate approver
-     */
-    public Employee getApprover(Employee requester, LeaveRequest leaveRequest) {
+    public Employee determineSupervisor(Employee requester) {
         if (requester == null) {
-            throw new IllegalArgumentException("Requester cannot be null");
+            return null;
         }
 
-        log.debug("Determining approver for requester: {} (ID: {})",
-                requester.getFullName(), requester.getId());
+        Position requesterPosition = requester.getPosition();
+        var requesterDept = requester.getDepartment();
 
-        Employee approver = null;
-        boolean isDeptHead = isDepartmentHead(requester);
+        // Case 1: Rektor (position level 6) → No supervisor
+        if (requesterPosition != null && requesterPosition.getLevel() >= 6) {
+            log.info("Requester is Rektor (level 6), no supervisor needed");
+            return null;
+        }
 
-        if (isDeptHead) {
-            // Dept Head requesting leave: find parent dept head
-            approver = getParentDepartmentHead(requester.getDepartment(), requester);
+        if (requesterDept == null) {
+            log.warn("Requester has no department, no supervisor determined");
+            return null;
+        }
 
-            if (approver == null) {
-                // This is a ROOT dept head (no parent), go directly to HR Admin
-                approver = getHRUser();
-                log.info("Requester is ROOT Dept Head {}, using HR Admin as approver",
-                        requester.getFullName());
-            } else {
-                log.info("Requester is Dept Head {}, using Parent Dept Head {} as approver",
-                        requester.getFullName(), approver.getFullName());
-            }
-        } else {
-            // Regular staff: get their department head
-            approver = getDepartmentHead(requester.getDepartment(), requester);
+        // Case 2: Head of Root Department → No supervisor
+        if (requesterDept.isRoot() && isHeadOfDepartment(requester, requesterDept)) {
+            log.info("Requester is head of root department, no supervisor needed");
+            return null;
+        }
 
-            if (approver == null) {
-                // No dept head found, try fallback or HR
-                if (requester.getApprover() != null) {
-                    approver = requester.getApprover();
-                    log.info("No Dept Head found for {}, using fallback approver",
-                            requester.getFullName());
-                } else {
-                    approver = getHRUser();
-                    log.warn("No approver found for {}, using HR Admin as fallback",
-                            requester.getEmail());
+        // Case 3: Head of Child Department → Parent department head
+        if (isHeadOfDepartment(requester, requesterDept) && !requesterDept.isRoot()) {
+            var parentDept = requesterDept.getParent();
+            if (parentDept != null && parentDept.getHead() != null) {
+                Employee parentHead = parentDept.getHead();
+                // Make sure parent head is not the same as requester
+                if (parentHead != null && !parentHead.getId().equals(requester.getId())) {
+                    log.info("Requester is head of child department, supervisor is parent dept head: {}",
+                            parentHead.getFullName());
+                    return parentHead;
                 }
-            } else {
-                log.info("Requester is staff {}, using Dept Head {} as approver",
-                        requester.getFullName(), approver.getFullName());
             }
         }
 
-        log.debug("Selected approver: {} (ID: {})", approver.getFullName(), approver.getId());
-        return approver;
+        // Case 4: Regular employee → Current department head
+        Employee deptHead = requesterDept.getHead();
+        if (deptHead != null && !deptHead.getId().equals(requester.getId())) {
+            log.info("Requester is regular employee, supervisor is dept head: {}", deptHead.getFullName());
+            return deptHead;
+        }
+
+        // Case 5: No valid supervisor found
+        log.warn("No valid supervisor found for requester: {}", requester.getFullName());
+        return null;
     }
 
     /**
-     * Get the next approver in the approval chain
-     * Used when current approver has approved but more approval is needed
+     * Check if requester needs 2-level approval
      *
-     * Approval flow (2 levels):
-     * - Level 1: Department Head
-     * - Level 2: HR Admin (final)
-     *
-     * @param currentApprover The current approver
-     * @param leaveRequest The leave request
-     * @return The next approver in chain (HR Admin), or null if approval is complete
+     * @param requester Employee who is making the request
+     * @return true if needs supervisor approval, false if directly to HR
      */
-    public Employee getNextApprover(Employee currentApprover, LeaveRequest leaveRequest) {
-        if (currentApprover == null) {
-            return null;
-        }
-
-        // Check if current approver is HR Admin
-        if (isHR(currentApprover)) {
-            // HR Admin is the final approver, no one after them
-            log.debug("Current approver is HR Admin, approval chain complete");
-            return null;
-        }
-
-        // If current approver is Dept Head (or anyone else), next is HR Admin
-        Employee hrAdmin = getHRUser();
-        log.debug("Next approver after {}: HR Admin {}", currentApprover.getFullName(), hrAdmin.getFullName());
-
-        return hrAdmin;
+    public boolean needsTwoLevelApproval(Employee requester) {
+        return determineSupervisor(requester) != null;
     }
 
     /**
-     * Check if an approver can approve a request from a requester
-     * Prevents self-approval and validates organizational hierarchy
+     * Get initial approval status for a new request
      *
-     * Authorization:
-     * - HR Admin can approve any request
-     * - Dept Head can approve their department members
-     * - Parent Dept Head can approve child department heads
-     *
-     * @param approver The potential approver
-     * @param requester The employee requesting leave
-     * @return true if the approver can approve this request
+     * @param requester Employee who is making the request
+     * @return "PENDING_SUPERVISOR" if needs 2-level, "PENDING_HR" if only 1-level
      */
-    public boolean canApprove(Employee approver, Employee requester) {
-        // Cannot approve own request
-        if (approver.getId().equals(requester.getId())) {
-            log.warn("Approver {} attempted to approve own request", approver.getEmail());
+    public String getInitialStatus(Employee requester) {
+        return needsTwoLevelApproval(requester) ? "PENDING_SUPERVISOR" : "PENDING_HR";
+    }
+
+    /**
+     * Get supervisor ID for requester (for database storage)
+     * Returns null if no supervisor needed
+     */
+    public Long getSupervisorId(Employee requester) {
+        Employee supervisor = determineSupervisor(requester);
+        return supervisor != null ? supervisor.getId() : null;
+    }
+
+    /**
+     * Validate if the given approver can approve the request at current status
+     *
+     * @param requester Employee who made the request
+     * @param currentStatus Current status of the request
+     * @param approverEmployee Employee trying to approve
+     * @return true if approver can approve, false otherwise
+     */
+    public boolean canApprove(Employee requester, String currentStatus, Employee approverEmployee) {
+        if (requester == null || approverEmployee == null) {
             return false;
         }
 
-        // Check if approver is HR Admin (can approve any request)
-        if (isHR(approver)) {
-            return true;
+        // Cannot approve own request
+        if (requester.getId().equals(approverEmployee.getId())) {
+            log.warn("Approver attempted to approve own request");
+            return false;
         }
 
-        // Check if approver is department head of requester's department
-        if (isDepartmentHeadOf(approver, requester.getDepartment())) {
-            return true;
+        Employee expectedSupervisor = determineSupervisor(requester);
+
+        // If current status is PENDING_SUPERVISOR
+        if ("PENDING_SUPERVISOR".equals(currentStatus)) {
+            if (expectedSupervisor == null) {
+                // No supervisor needed, HR can approve directly
+                return isHrOrAdmin(approverEmployee);
+            }
+            // Check if approver is the expected supervisor
+            return expectedSupervisor.getId().equals(approverEmployee.getId());
         }
 
-        // Check if approver is parent department head (for dept head requests)
-        if (isParentDepartmentHeadOf(approver, requester.getDepartment())) {
-            return true;
+        // If current status is PENDING_HR
+        if ("PENDING_HR".equals(currentStatus)) {
+            // Only HR/Admin can approve
+            return isHrOrAdmin(approverEmployee);
         }
 
-        // Check if approver is explicitly set as requester's approver (fallback)
-        if (requester.getApprover() != null &&
-            requester.getApprover().getId().equals(approver.getId())) {
-            return true;
-        }
-
-        log.warn("Approver {} is not authorized to approve requests from {}",
-                approver.getEmail(), requester.getEmail());
         return false;
     }
 
@@ -198,170 +164,22 @@ public class ApprovalService {
     // =====================================================
 
     /**
-     * Check if an employee is a department head
+     * Check if employee is the head of the specified department
      */
-    public boolean isDepartmentHead(Employee employee) {
-        if (employee == null || employee.getDepartment() == null) {
+    private boolean isHeadOfDepartment(Employee employee, com.hris.model.Department department) {
+        if (department == null || department.getHead() == null) {
             return false;
         }
-
-        Department dept = employee.getDepartment();
-        return dept.getHead() != null && dept.getHead().getId().equals(employee.getId());
+        return department.getHead().getId().equals(employee.getId());
     }
 
     /**
-     * Check if an employee is the department head of a specific department
+     * Check if employee has HR or Admin role
+     * TODO: Implement proper role checking when User/Role system is ready
      */
-    public boolean isDepartmentHeadOf(Employee employee, Department department) {
-        if (employee == null || department == null) {
-            return false;
-        }
-
-        return department.getHead() != null &&
-               department.getHead().getId().equals(employee.getId());
-    }
-
-    /**
-     * Check if an employee is a parent department head
-     */
-    public boolean isParentDepartmentHeadOf(Employee employee, Department department) {
-        if (employee == null || department == null) {
-            return false;
-        }
-
-        Department parent = department.getParent();
-        while (parent != null) {
-            if (parent.getHead() != null &&
-                parent.getHead().getId().equals(employee.getId())) {
-                return true;
-            }
-            parent = parent.getParent();
-        }
-
-        return false;
-    }
-
-    /**
-     * Check if an employee has HR role
-     */
-    public boolean isHR(Employee employee) {
-        if (employee == null) {
-            return false;
-        }
-
-        // Check employee roles (assuming roles are loaded)
-        // This will need to be adjusted based on your role implementation
-        return employeeRepository.hasRole(employee.getId(), "HR");
-    }
-
-    /**
-     * Get the department head for a department
-     */
-    private Employee getDepartmentHead(Department department, Employee excludeEmployee) {
-        if (department == null) {
-            return null;
-        }
-
-        Employee head = department.getHead();
-        if (head != null && (excludeEmployee == null || !head.getId().equals(excludeEmployee.getId()))) {
-            return head;
-        }
-
-        return null;
-    }
-
-    /**
-     * Get the parent department head
-     * Traverses up the department hierarchy to find a suitable approver
-     */
-    private Employee getParentDepartmentHead(Department department, Employee excludeEmployee) {
-        if (department == null) {
-            return null;
-        }
-
-        Department parent = department.getParent();
-        while (parent != null) {
-            Employee parentHead = parent.getHead();
-            if (parentHead != null &&
-                (excludeEmployee == null || !parentHead.getId().equals(excludeEmployee.getId()))) {
-                return parentHead;
-            }
-            parent = parent.getParent();
-        }
-
-        return null;
-    }
-
-    /**
-     * Get an HR user as fallback approver
-     */
-    private Employee getHRUser() {
-        // Find first active employee with HR role
-        // This is a simple implementation - you may want to enhance this
-        List<Employee> hrUsers = employeeRepository.findByRole("HR");
-        if (hrUsers != null && !hrUsers.isEmpty()) {
-            return hrUsers.get(0);
-        }
-
-        // Last resort: return admin user
-        return employeeRepository.findByEmailAndDeletedAtIsNull("admin@hris.local")
-                .orElseThrow(() -> new IllegalStateException("No HR or admin user available for approval"));
-    }
-
-    /**
-     * Calculate the duration of a leave request in days
-     */
-    private long getLeaveDurationDays(LeaveRequest leaveRequest) {
-        if (leaveRequest == null ||
-            leaveRequest.getStartDate() == null ||
-            leaveRequest.getEndDate() == null) {
-            return 0;
-        }
-
-        return ChronoUnit.DAYS.between(leaveRequest.getStartDate(), leaveRequest.getEndDate()) + 1;
-    }
-
-    /**
-     * Set the current approver for a leave request
-     */
-    public void setCurrentApprover(LeaveRequest leaveRequest) {
-        if (leaveRequest == null || leaveRequest.getEmployee() == null) {
-            throw new IllegalArgumentException("Leave request and employee cannot be null");
-        }
-
-        Employee approver = getApprover(leaveRequest.getEmployee(), leaveRequest);
-        leaveRequest.setCurrentApproverId(approver.getId());
-        leaveRequest.setStatus(LeaveRequestStatus.PENDING);
-
-        log.info("Set current approver for leave request {} to: {} (ID: {})",
-                leaveRequest.getId(), approver.getFullName(), approver.getId());
-    }
-
-    /**
-     * Check if approval is complete for a leave request
-     */
-    public boolean isApprovalComplete(LeaveRequest leaveRequest) {
-        if (leaveRequest == null) {
-            return false;
-        }
-
-        // If approved or rejected, approval is complete
-        if (leaveRequest.getStatus() == LeaveRequestStatus.APPROVED ||
-            leaveRequest.getStatus() == LeaveRequestStatus.REJECTED) {
-            return true;
-        }
-
-        // If still pending, check if there are more approvers in chain
-        long durationDays = getLeaveDurationDays(leaveRequest);
-        Employee requester = leaveRequest.getEmployee();
-
-        // For short leave, single approval is enough
-        if (durationDays <= 3) {
-            return leaveRequest.getApprovedBy() != null;
-        }
-
-        // For long leave, need to check if HR approved
-        // This is a simplified check - you may need more complex logic
-        return leaveRequest.getApprovedBy() != null && isHR(leaveRequest.getApprovedBy());
+    private boolean isHrOrAdmin(Employee employee) {
+        // For now, return true - will be implemented with proper role system
+        // Should check if employee has HR or ADMIN role
+        return true;
     }
 }

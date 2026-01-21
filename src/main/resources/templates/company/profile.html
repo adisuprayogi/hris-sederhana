@@ -60,7 +60,7 @@
                     <div class="flex flex-col items-center text-center">
                         <div class="w-32 h-32 bg-gray-100 rounded-xl flex items-center justify-center mb-4 overflow-hidden">
                             <img th:if="${company.logoPath != null}"
-                                 th:src="@{/files/{path}(path=${company.logoPath})}"
+                                 th:src="@{${company.logoPath}}"
                                  alt="Company Logo"
                                  class="w-full h-full object-cover"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="max-w-7xl mx-auto">
+        <!-- Page Header -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">Laporan Kehadiran</h1>
+            <p class="text-sm text-gray-500">Laporan kehadiran karyawan</p>
+        </div>
+
+        <!-- Filter Form -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
+            <form th:action="@{/attendance/report}" method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
+                    <input type="date" name="startDate" th:value="${startDate}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+                    <input type="date" name="endDate" th:value="${endDate}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Karyawan</label>
+                    <select name="employeeId" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Semua Karyawan</option>
+                        <option th:each="emp : ${employees}" th:value="${emp.id}" th:text="${emp.fullName}"
+                                th:selected="${selectedEmployee != null and selectedEmployee.id == emp.id}"></option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 border border-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-all">
+                        Tampilkan
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Records Table -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Tanggal</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Karyawan</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Clock In</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Clock Out</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Jam Kerja</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Lembur</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr th:if="${records == null or records.isEmpty()}">
+                            <td colspan="7" class="px-6 py-12 text-center text-sm text-gray-500">
+                                Tidak ada data kehadiran untuk periode yang dipilih
+                            </td>
+                        </tr>
+                        <tr th:each="record : ${records}" class="hover:bg-gray-50">
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900" th:text="${#temporals.format(record.attendanceDate, 'dd MMM yyyy')}"></div>
+                                <div class="text-xs text-gray-500" th:text="${#temporals.format(record.attendanceDate, 'EEEE')}"></div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900" th:text="${record.employee != null ? record.employee.fullName : '-'}"></div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900" th:text="${record.clockInTime != null ? #temporals.format(record.clockInTime, 'HH:mm') : '-'}"></div>
+                                <div th:if="${record.isLate}" class="text-xs text-amber-600 mt-0.5">
+                                    +<span th:text="${record.lateDurationMinutes}">0</span> min
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900" th:text="${record.clockOutTime != null ? #temporals.format(record.clockOutTime, 'HH:mm') : '-'}"></div>
+                                <div th:if="${record.isEarlyLeave}" class="text-xs text-amber-600 mt-0.5">
+                                    -<span th:text="${record.earlyLeaveDurationMinutes}">0</span> min
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">
+                                    <span th:text="${record.actualWorkMinutes != null ? record.actualWorkMinutes / 60 : 0}">0</span> jam
+                                </div>
+                                <div th:if="${record.isWfh}" class="text-xs text-blue-600 mt-0.5">WFH</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div th:if="${record.isOvertime}" class="text-sm text-amber-600">
+                                    <span th:text="${record.overtimeDurationMinutes != null ? record.overtimeDurationMinutes / 60 : 0}">0</span> jam
+                                </div>
+                                <div th:if="${!record.isOvertime}" class="text-sm text-gray-400">-</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span th:if="${record.status != null}" th:class="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' +
+                                    ${record.status.name() == 'PRESENT' ? 'bg-green-100 text-green-800' :
+                                      record.status.name() == 'LATE' ? 'bg-amber-100 text-amber-800' :
+                                      record.status.name() == 'EARLY_LEAVE' ? 'bg-orange-100 text-orange-800' :
+                                      record.status.name() == 'WFH' ? 'bg-blue-100 text-blue-800' :
+                                      'bg-gray-100 text-gray-800'}"
+                                      th:text="${record.status.displayValue}">
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</html>

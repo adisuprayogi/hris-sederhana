@@ -1,6 +1,5 @@
 package com.hris.repository;
 
-import com.hris.model.Employee;
 import com.hris.model.LeaveRequest;
 import com.hris.model.enums.LeaveRequestStatus;
 import com.hris.model.enums.LeaveType;
@@ -10,11 +9,11 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
  * Repository untuk LeaveRequest Entity
+ * Supports 2-level approval workflow
  */
 @Repository
 public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long> {
@@ -30,12 +29,22 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
     List<LeaveRequest> findByStatusAndDeletedAtIsNullOrderByCreatedAtDesc(LeaveRequestStatus status);
 
     /**
-     * Find pending leave requests for approver
+     * Find pending supervisor requests
      */
-    @Query("SELECT lr FROM LeaveRequest lr WHERE lr.currentApprover.id = :approverId " +
-            "AND lr.status = 'PENDING' AND lr.deletedAt IS NULL " +
-            "ORDER BY lr.createdAt DESC")
-    List<LeaveRequest> findPendingRequestsForApprover(@Param("approverId") Long approverId);
+    @Query("SELECT lr FROM LeaveRequest lr " +
+            "WHERE lr.status = 'PENDING_SUPERVISOR' " +
+            "AND lr.deletedAt IS NULL " +
+            "ORDER BY lr.createdAt ASC")
+    List<LeaveRequest> findPendingSupervisorRequests();
+
+    /**
+     * Find pending HR requests
+     */
+    @Query("SELECT lr FROM LeaveRequest lr " +
+            "WHERE lr.status = 'PENDING_HR' " +
+            "AND lr.deletedAt IS NULL " +
+            "ORDER BY lr.createdAt ASC")
+    List<LeaveRequest> findPendingHrRequests();
 
     /**
      * Find leave requests by type
@@ -49,7 +58,7 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
             "((lr.startDate >= :startDate AND lr.startDate <= :endDate) OR " +
             "(lr.endDate >= :startDate AND lr.endDate <= :endDate) OR " +
             "(lr.startDate <= :startDate AND lr.endDate >= :endDate)) " +
-            "AND lr.status IN ('PENDING', 'APPROVED') " +
+            "AND lr.status IN ('PENDING_SUPERVISOR', 'PENDING_HR', 'APPROVED') " +
             "AND lr.deletedAt IS NULL " +
             "ORDER BY lr.startDate DESC")
     List<LeaveRequest> findLeaveRequestsInDateRange(
@@ -59,8 +68,8 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
     /**
      * Find overlapping leave requests for employee
      */
-    @Query("SELECT lr FROM LeaveRequest lr WHERE lr.employee.id = :employeeId " +
-            "AND lr.status IN ('PENDING', 'APPROVED') " +
+    @Query("SELECT lr FROM LeaveRequest lr WHERE lr.employeeId = :employeeId " +
+            "AND lr.status IN ('PENDING_SUPERVISOR', 'PENDING_HR', 'APPROVED') " +
             "AND lr.deletedAt IS NULL " +
             "AND ((lr.startDate <= :endDate AND lr.endDate >= :startDate))")
     List<LeaveRequest> findOverlappingLeaveRequests(
@@ -71,7 +80,7 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
     /**
      * Find approved leave requests for employee in date range
      */
-    @Query("SELECT lr FROM LeaveRequest lr WHERE lr.employee.id = :employeeId " +
+    @Query("SELECT lr FROM LeaveRequest lr WHERE lr.employeeId = :employeeId " +
             "AND lr.status = 'APPROVED' " +
             "AND ((lr.startDate >= :startDate AND lr.startDate <= :endDate) OR " +
             "(lr.endDate >= :startDate AND lr.endDate <= :endDate) OR " +
@@ -88,20 +97,33 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
     long countByStatusAndDeletedAtIsNull(LeaveRequestStatus status);
 
     /**
-     * Count pending requests for approver
-     */
-    @Query("SELECT COUNT(lr) FROM LeaveRequest lr WHERE lr.currentApprover.id = :approverId " +
-            "AND lr.status = 'PENDING' AND lr.deletedAt IS NULL")
-    long countPendingRequestsForApprover(@Param("approverId") Long approverId);
-
-    /**
      * Get leave statistics for employee in a year
      */
-    @Query("SELECT lr FROM LeaveRequest lr WHERE lr.employee.id = :employeeId " +
+    @Query("SELECT lr FROM LeaveRequest lr WHERE lr.employeeId = :employeeId " +
             "AND YEAR(lr.startDate) = :year " +
             "AND lr.status = 'APPROVED' " +
             "AND lr.deletedAt IS NULL")
     List<LeaveRequest> findApprovedLeaveInYear(
             @Param("employeeId") Long employeeId,
             @Param("year") int year);
+
+    /**
+     * Check if employee has approved leave on specific date
+     */
+    @Query("SELECT CASE WHEN COUNT(lr) > 0 THEN true ELSE false END FROM LeaveRequest lr " +
+            "WHERE lr.employeeId = :employeeId " +
+            "AND :date BETWEEN lr.startDate AND lr.endDate " +
+            "AND lr.status = 'APPROVED' " +
+            "AND lr.deletedAt IS NULL")
+    boolean hasApprovedLeaveOnDate(@Param("employeeId") Long employeeId, @Param("date") LocalDate date);
+
+    /**
+     * Find leave requests by supervisor
+     */
+    @Query("SELECT lr FROM LeaveRequest lr " +
+            "WHERE lr.supervisorId = :supervisorId " +
+            "AND lr.status IN ('PENDING_SUPERVISOR', 'PENDING_HR') " +
+            "AND lr.deletedAt IS NULL " +
+            "ORDER BY lr.createdAt DESC")
+    List<LeaveRequest> findBySupervisorIdOrderByCreatedAtDesc(@Param("supervisorId") Long supervisorId);
 }

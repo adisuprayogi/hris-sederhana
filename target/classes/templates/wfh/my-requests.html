@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="max-w-5xl mx-auto" x-data="wfhRequests()">
+        <!-- Page Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Pengajuan WFH</h1>
+                <p class="text-sm text-gray-500">Ajukan dan pantau permintaan Work From Home Anda</p>
+            </div>
+            <button @click="showForm = true" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 border border-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-all">
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Ajukan WFH
+            </button>
+        </div>
+
+        <!-- WFH Request Form Modal -->
+        <div x-show="showForm" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-md" @click.outside="showForm = false">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-900">Ajukan WFH</h2>
+                </div>
+                <form @submit.prevent="submitRequest" class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal WFH <span class="text-red-500">*</span></label>
+                        <input type="date" x-model="form.requestDate" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Alasan</label>
+                        <textarea x-model="form.reason" rows="3" placeholder="Jelaskan alasan permintaan WFH..."
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" @click="showForm = false" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all">
+                            Batal
+                        </button>
+                        <button type="submit" :disabled="submitting" class="flex-1 px-4 py-2 bg-blue-600 border border-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-all disabled:opacity-50">
+                            <span x-show="!submitting">Kirim</span>
+                            <span x-show="submitting">Mengirim...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Requests List -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Tanggal</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Alasan</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Approval</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr th:if="${requests == null or requests.isEmpty()}">
+                            <td colspan="4" class="px-6 py-12 text-center">
+                                <div class="flex flex-col items-center">
+                                    <svg class="w-12 h-12 text-gray-300 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v-.375m0 0A1.125 1.125 0 0019.125 3H15m.75 12.75h.007v.008h-.007v-.008zM12 11.25h.008v.008H12v-.008zm-3.75 0h.008v.008H8.25v-.008z" />
+                                    </svg>
+                                    <p class="text-sm text-gray-500">Belum ada pengajuan WFH</p>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:each="req : ${requests}" class="hover:bg-gray-50">
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900" th:text="${#temporals.format(req.requestDate, 'dd MMM yyyy')}"></div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900 max-w-xs truncate" th:text="${req.reason != null ? req.reason : '-'}"></div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span th:class="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' +
+                                    ${req.status.name() == 'PENDING_SUPERVISOR' ? 'bg-amber-100 text-amber-800' :
+                                      req.status.name() == 'PENDING_HR' ? 'bg-blue-100 text-blue-800' :
+                                      req.status.name() == 'APPROVED' ? 'bg-green-100 text-green-800' :
+                                      'bg-red-100 text-red-800'}">
+                                    <span th:text="${req.status.displayValue}"></span>
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm">
+                                <div th:if="${req.status.name() == 'PENDING_SUPERVISOR' or req.status.name() == 'PENDING_HR'}" class="text-gray-500">Menunggu approval</div>
+                                <div th:if="${req.status.name() == 'APPROVED'" class="text-green-600">Disetujui</div>
+                                <div th:if="${req.status.name().startsWith('REJECTED')}" class="text-red-600">
+                                    Ditolak: <span th:text="${req.supervisorApprovalNote != null ? req.supervisorApprovalNote : req.hrApprovalNote}"></span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div th:if="${success}" class="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700" th:text="${success}"></div>
+        <div th:if="${error}" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700" th:text="${error}"></div>
+    </div>
+
+    <script>
+    function wfhRequests() {
+        return {
+            showForm: false,
+            submitting: false,
+            form: {
+                requestDate: '',
+                reason: ''
+            },
+
+            async submitRequest() {
+                if (this.submitting) return;
+                this.submitting = true;
+
+                try {
+                    const formData = new FormData();
+                    formData.append('requestDate', this.form.requestDate);
+                    formData.append('reason', this.form.reason);
+
+                    const response = await fetch('/wfh/submit', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        const text = await response.text();
+                        alert('Gagal mengajukan WFH: ' + text);
+                    }
+                } catch (e) {
+                    alert('Terjadi kesalahan: ' + e.message);
+                } finally {
+                    this.submitting = false;
+                }
+            }
+        };
+    }
+    </script>
+</div>
+</html>
