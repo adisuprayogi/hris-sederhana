@@ -46,4 +46,9 @@ public interface EmployeeRoleRepository extends JpaRepository<EmployeeRole, Long
     @Query("UPDATE EmployeeRole er SET er.deletedAt = CURRENT_TIMESTAMP, er.deletedBy = :deletedBy " +
            "WHERE er.employeeId = :employeeId AND er.deletedAt IS NULL")
     void softDeleteByEmployeeId(@Param("employeeId") Long employeeId, @Param("deletedBy") Long deletedBy);
+
+    /**
+     * Find employee role by employee ID and role type (active only)
+     */
+    Optional<EmployeeRole> findByEmployeeIdAndRoleAndDeletedAtIsNull(Long employeeId, RoleType role);
 }

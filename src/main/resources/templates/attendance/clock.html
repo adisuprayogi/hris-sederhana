@@ -14,8 +14,8 @@
         <!-- Today's Date & Time -->
         <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
             <div class="text-center">
-                <p class="text-sm text-gray-500 mb-1" x-text="formatDate(new Date())"></p>
-                <h2 class="text-4xl font-bold text-gray-900" x-text="formatTime(new Date())"></h2>
+                <p class="text-sm text-gray-500 mb-1" x-text="formatDate(currentTime)"></p>
+                <h2 class="text-4xl font-bold text-gray-900" x-text="formatTime(currentTime)"></h2>
             </div>
         </div>
 
@@ -258,6 +258,7 @@
             location: null,
             shift: null,
             company: null,
+            currentTime: new Date(),
             locationStatus: 'detecting', // detecting, unknown, valid, invalid
             locationMessage: 'Mendeteksi lokasi...',
             distance: null,
@@ -276,9 +277,7 @@
             },
 
             updateTime() {
-                const now = new Date();
-                const el = document.getElementById('currentTime');
-                if (el) el.textContent = this.formatTime(now);
+                this.currentTime = new Date();
             },
 
             formatTime(date) {

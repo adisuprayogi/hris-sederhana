@@ -165,4 +165,15 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
      */
     @Query("SELECT e FROM Employee e WHERE e.deletedAt IS NULL ORDER BY e.fullName ASC")
     List<Employee> findAllByDeletedAtIsNullOrderByFullNameAsc();
+
+    /**
+     * Search employees by name or email (for user management)
+     */
+    @Query("SELECT DISTINCT e FROM Employee e " +
+           "LEFT JOIN FETCH e.department " +
+           "LEFT JOIN FETCH e.position " +
+           "WHERE (LOWER(e.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(e.email) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
+           "e.deletedAt IS NULL ORDER BY e.fullName")
+    List<Employee> searchByNameOrEmail(@Param("search") String search);
 }

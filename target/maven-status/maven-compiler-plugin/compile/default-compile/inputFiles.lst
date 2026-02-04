@@ -3,6 +3,7 @@
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/repository/EmployeeRepository.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/enums/LecturerEmploymentStatus.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/OvertimeRequestController.java
+/home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/UsersController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/controller/CompanyController.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/model/EmployeeShiftSchedule.java
 /home/zenbook/Documents/Data/Kerjaan/Yogi/hris-sederhana/src/main/java/com/hris/config/SecurityConfig.java

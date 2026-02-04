@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+
+<div layout:fragment="content">
+    <div class="max-w-7xl mx-auto" x-data="userManagement()">
+        <!-- Page Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">User Management</h1>
+                <p class="text-sm text-gray-500">Kelola role akses pengguna</p>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+            <form @submit.prevent="searchUsers" class="flex gap-3">
+                <div class="flex-1">
+                    <input type="text" x-model="search" placeholder="Cari berdasarkan nama atau email..."
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-all">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                </button>
+                <button type="button" @click="clearSearch" x-show="search" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-all">
+                    Reset
+                </button>
+            </form>
+        </div>
+
+        <!-- Users Table -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Employee</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">NIK</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Department</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Position</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Roles</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr th:if="${users == null or users.isEmpty()}">
+                            <td colspan="6" class="px-6 py-12 text-center">
+                                <div class="flex flex-col items-center">
+                                    <svg class="w-12 h-12 text-gray-300 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.75 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                                    </svg>
+                                    <p class="text-sm text-gray-500">Tidak ada user ditemukan</p>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:each="user : ${users}" class="hover:bg-gray-50">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-lg shadow-blue-600/30">
+                                        <span th:text="${#strings.substring(user.fullName, 0, 1)}">B</span>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900" th:text="${user.fullName}">Budi Santoso</div>
+                                        <div class="text-xs text-gray-500" th:text="${user.email}">budi@example.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900" th:text="${user.nik}">12345</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900" th:text="${user.department}">IT</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900" th:text="${user.position}">Developer</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-wrap gap-1">
+                                    <span th:each="role : ${user.roles}"
+                                          th:class="'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ' +
+                                              ${role == 'ADMIN' ? 'bg-red-100 text-red-700' :
+                                                role == 'HR' ? 'bg-purple-100 text-purple-700' :
+                                                role == 'EMPLOYEE' ? 'bg-green-100 text-green-700' :
+                                                'bg-amber-100 text-amber-700'}"
+                                          th:text="${role}">ADMIN</span>
+                                    <span th:if="${user.roles == null or user.roles.isEmpty()}" class="text-xs text-gray-400">-</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <button @click="openEditModal(${user.employeeId})"
+                                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-100 transition-all">
+                                    <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                    </svg>
+                                    Edit
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Edit User Modal -->
+        <div x-show="editModal.show" x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" @click.outside="closeEditModal()">
+                <div class="p-6 border-b border-gray-200 sticky top-0 bg-white rounded-t-2xl">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-900">Edit User</h2>
+                        <button @click="closeEditModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-all">
+                            <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <form @submit.prevent="saveUser" class="p-6 space-y-6">
+                    <!-- Employee Info (Read Only) -->
+                    <div class="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-xl">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Nama Lengkap</label>
+                            <div class="text-sm font-medium text-gray-900" x-text="editModal.fullName">-</div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Email</label>
+                            <div class="text-sm text-gray-900" x-text="editModal.email">-</div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">NIK</label>
+                            <div class="text-sm text-gray-900" x-text="editModal.nik">-</div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+                            <div class="text-sm text-gray-900" x-text="editModal.status">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Department & Position (Read Only) -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Department</label>
+                            <div class="text-sm text-gray-900" x-text="editModal.department">-</div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Position</label>
+                            <div class="text-sm text-gray-900" x-text="editModal.position">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Roles Section -->
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-900 mb-3">Role Configuration</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <!-- ADMIN -->
+                            <label class="flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-all"
+                                   :class="editModal.roles.includes('ADMIN') ? 'border-red-300 bg-red-50' : 'border-gray-200'">
+                                <input type="checkbox" x-model="editModal.rolesArray.ADMIN" @change="updateRoles()" class="w-5 h-5 text-red-600 rounded focus:ring-red-500">
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium" :class="editModal.roles.includes('ADMIN') ? 'text-red-700' : 'text-gray-700'">ADMIN</div>
+                                    <div class="text-xs text-gray-500">Full access to all features</div>
+                                </div>
+                            </label>
+
+                            <!-- HR -->
+                            <label class="flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-all"
+                                   :class="editModal.roles.includes('HR') ? 'border-purple-300 bg-purple-50' : 'border-gray-200'">
+                                <input type="checkbox" x-model="editModal.rolesArray.HR" @change="updateRoles()" class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500">
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium" :class="editModal.roles.includes('HR') ? 'text-purple-700' : 'text-gray-700'">HR</div>
+                                    <div class="text-xs text-gray-500">Human Resources management</div>
+                                </div>
+                            </label>
+
+                            <!-- EMPLOYEE -->
+                            <label class="flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-all"
+                                   :class="editModal.roles.includes('EMPLOYEE') ? 'border-green-300 bg-green-50' : 'border-gray-200'">
+                                <input type="checkbox" x-model="editModal.rolesArray.EMPLOYEE" @change="updateRoles()" class="w-5 h-5 text-green-600 rounded focus:ring-green-500">
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium" :class="editModal.roles.includes('EMPLOYEE') ? 'text-green-700' : 'text-gray-700'">EMPLOYEE</div>
+                                    <div class="text-xs text-gray-500">Standard employee access</div>
+                                </div>
+                            </label>
+
+                            <!-- DOSEN -->
+                            <label class="flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-all"
+                                   :class="editModal.roles.includes('DOSEN') ? 'border-amber-300 bg-amber-50' : 'border-gray-200'">
+                                <input type="checkbox" x-model="editModal.rolesArray.DOSEN" @change="updateRoles()" class="w-5 h-5 text-amber-600 rounded focus:ring-amber-500">
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium" :class="editModal.roles.includes('DOSEN') ? 'text-amber-700' : 'text-gray-700'">DOSEN</div>
+                                    <div class="text-xs text-gray-500">Lecturer access</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Warning: At least one role -->
+                    <div x-show="editModal.roles.length === 0" class="p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
+                        <p class="text-sm text-yellow-700">⚠️ User harus memiliki minimal 1 role</p>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex gap-3 pt-4 border-t">
+                        <button type="button" @click="closeEditModal()" class="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all">
+                            Batal
+                        </button>
+                        <button type="submit" :disabled="editModal.roles.length === 0 || editModal.saving"
+                                class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-show="!editModal.saving">Simpan Perubahan</span>
+                            <span x-show="editModal.saving">Menyimpan...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div x-show="toast.show" x-transition x-cloak
+             :class="toast.type === 'success' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'"
+             class="fixed bottom-4 right-4 px-4 py-3 rounded-xl border shadow-lg text-sm">
+            <span x-text="toast.message"></span>
+        </div>
+    </div>
+
+    <!-- Hidden data storage for user roles -->
+    <div id="userRolesData" style="display:none;">
+        <template th:each="user : ${users}">
+            <span th:attr="data-employee-id=${user.employeeId}, data-roles=${#strings.arrayJoin(user.roles, ',')}"></span>
+        </template>
+    </div>
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+
+    <script>
+    function userManagement() {
+        return {
+            search: '',
+
+            // Edit Modal State
+            editModal: {
+                show: false,
+                employeeId: null,
+                fullName: '',
+                email: '',
+                nik: '',
+                department: '',
+                position: '',
+                status: '',
+                roles: [],
+                rolesArray: {
+                    ADMIN: false,
+                    HR: false,
+                    EMPLOYEE: false,
+                    DOSEN: false
+                },
+                saving: false
+            },
+
+            toast: {
+                show: false,
+                message: '',
+                type: 'success'
+            },
+
+            // Store initial roles from server
+            userRolesMap: {},
+
+            init() {
+                console.log('userManagement initialized');
+                // Load user roles from DOM data
+                const roleElements = document.querySelectorAll('#userRolesData span');
+                roleElements.forEach(el => {
+                    const employeeId = el.getAttribute('data-employee-id');
+                    const rolesStr = el.getAttribute('data-roles');
+                    this.userRolesMap[employeeId] = rolesStr ? rolesStr.split(',') : [];
+                });
+                console.log('userRolesMap:', this.userRolesMap);
+            },
+
+            // Search
+            searchUsers() {
+                if (this.search.trim()) {
+                    window.location.href = '/users/search?search=' + encodeURIComponent(this.search.trim());
+                } else {
+                    window.location.href = '/users';
+                }
+            },
+
+            clearSearch() {
+                this.search = '';
+                window.location.href = '/users';
+            },
+
+            // Edit Modal
+            async openEditModal(employeeId) {
+                console.log('openEditModal called with employeeId:', employeeId);
+
+                // Show loading state
+                this.editModal.employeeId = employeeId;
+                this.editModal.fullName = 'Loading...';
+                this.editModal.email = '';
+                this.editModal.nik = '';
+                this.editModal.department = '';
+                this.editModal.position = '';
+                this.editModal.status = '';
+                this.editModal.roles = [];
+                this.editModal.rolesArray = {
+                    ADMIN: false,
+                    HR: false,
+                    EMPLOYEE: false,
+                    DOSEN: false
+                };
+
+                this.editModal.show = true;
+                console.log('Modal show set to true');
+
+                // Fetch user data from server
+                try {
+                    console.log('Fetching user data from /users/' + employeeId);
+                    const response = await fetch(`/users/${employeeId}`);
+                    console.log('Response status:', response.status);
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('Received data:', data);
+
+                        if (data.success && data.user) {
+                            this.editModal.fullName = data.user.fullName;
+                            this.editModal.email = data.user.email;
+                            this.editModal.nik = data.user.nik;
+                            this.editModal.department = data.user.department;
+                            this.editModal.position = data.user.position;
+                            this.editModal.status = data.user.status;
+                            this.editModal.roles = data.user.roles || [];
+                            console.log('User data loaded:', this.editModal);
+                        } else {
+                            throw new Error('Failed to load user data');
+                        }
+                    } else {
+                        throw new Error('Server error: ' + response.status);
+                    }
+                } catch (e) {
+                    console.error('Error fetching user:', e);
+                    this.showToast('error', 'Gagal memuat data user: ' + e.message);
+                    this.editModal.show = false;
+                    return;
+                }
+
+                // Set checkboxes based on roles
+                this.editModal.rolesArray = {
+                    ADMIN: this.editModal.roles.includes('ADMIN'),
+                    HR: this.editModal.roles.includes('HR'),
+                    EMPLOYEE: this.editModal.roles.includes('EMPLOYEE'),
+                    DOSEN: this.editModal.roles.includes('DOSEN')
+                };
+
+                console.log('Final roles array:', this.editModal.rolesArray);
+            },
+
+            closeEditModal() {
+                this.editModal.show = false;
+                this.editModal.employeeId = null;
+                this.editModal.roles = [];
+                this.editModal.rolesArray = {
+                    ADMIN: false,
+                    HR: false,
+                    EMPLOYEE: false,
+                    DOSEN: false
+                };
+            },
+
+            updateRoles() {
+                this.editModal.roles = [];
+                if (this.editModal.rolesArray.ADMIN) this.editModal.roles.push('ADMIN');
+                if (this.editModal.rolesArray.HR) this.editModal.roles.push('HR');
+                if (this.editModal.rolesArray.EMPLOYEE) this.editModal.roles.push('EMPLOYEE');
+                if (this.editModal.rolesArray.DOSEN) this.editModal.roles.push('DOSEN');
+            },
+
+            async saveUser() {
+                if (this.editModal.roles.length === 0) {
+                    this.showToast('error', 'User harus memiliki minimal 1 role');
+                    return;
+                }
+
+                this.editModal.saving = true;
+
+                try {
+                    const response = await fetch(`/users/${this.editModal.employeeId}/roles`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ roles: this.editModal.roles })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.showToast('success', result.message || 'Role berhasil diperbarui');
+                        this.closeEditModal();
+
+                        // Refresh page after short delay
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        this.showToast('error', result.message || 'Gagal menyimpan');
+                    }
+                } catch (e) {
+                    console.error('Error saving user:', e);
+                    this.showToast('error', 'Terjadi kesalahan: ' + e.message);
+                } finally {
+                    this.editModal.saving = false;
+                }
+            },
+
+            showToast(type, message) {
+                this.toast = {
+                    show: true,
+                    type: type,
+                    message: message
+                };
+
+                setTimeout(() => {
+                    this.toast.show = false;
+                }, 3000);
+            }
+        };
+    }
+    </script>
+</div>
+</html>

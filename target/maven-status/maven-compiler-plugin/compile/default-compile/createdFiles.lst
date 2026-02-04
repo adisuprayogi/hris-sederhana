@@ -81,6 +81,7 @@ com/hris/controller/AuthController$1.class
 com/hris/controller/PositionController.class
 com/hris/controller/ShiftPatternController.class
 com/hris/repository/ContractHistoryRepository.class
+com/hris/controller/UsersController.class
 com/hris/model/enums/AttendanceStatus.class
 com/hris/repository/AttendanceRecordRepository.class
 com/hris/repository/EmployeeShiftSettingRepository.class
@@ -102,6 +103,7 @@ com/hris/model/Department.class
 com/hris/model/ContractHistory.class
 com/hris/controller/LeaveTypeSettingController.class
 com/hris/dto/BulkAssignShiftResult$SuccessItem$SuccessItemBuilder.class
+com/hris/controller/UsersController$UserWithRolesDTO.class
 com/hris/model/TeachingAttendanceStaging.class
 com/hris/repository/TeachingScheduleStagingRepository.class
 com/hris/controller/EmployeeShiftController$WeekScheduleDTO.class
